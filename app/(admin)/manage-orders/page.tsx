@@ -1,6 +1,6 @@
 import React from 'react'
 
-const ViewOrder = () => {
+const ManageOrder = () => {
   return (
     <div>
       view orders
@@ -9,4 +9,4 @@ const ViewOrder = () => {
   )
 }
 
-export default ViewOrder
+export default ManageOrder
