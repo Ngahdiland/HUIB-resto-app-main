@@ -34,13 +34,14 @@ export default function AuthPage() {
       });
       if (!res.ok) {
         const data = await res.json();
-        setError(data.message || 'Login failed');
+        setError(data.message || data.error || 'Login failed');
       } else {
         // Success: redirect
         router.replace('/');
       }
     } catch (err) {
-      setError('Login failed. Please try again.');
+      console.error('Login error:', err);
+      setError('Login failed. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
@@ -66,13 +67,14 @@ export default function AuthPage() {
       });
       if (!res.ok) {
         const data = await res.json();
-        setError(data.message || 'Registration failed');
+        setError(data.message || data.error || 'Registration failed');
       } else {
         // Success: redirect
         router.replace('/');
       }
     } catch (err) {
-      setError('Registration failed. Please try again.');
+      console.error('Registration error:', err);
+      setError('Registration failed. Please check your connection and try again.');
     } finally {
       setLoading(false);
     }
