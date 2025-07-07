@@ -38,7 +38,7 @@ const Navbar = () => {
   return (
     <nav className="fixed top-0 left-0 right-0 bg-white border-b border-red-500 px-4 py-2 flex items-center justify-between z-50 shadow-sm">
       {/* Logo */}
-      <div className="text-xl md:text-2xl font-bold text-red-600">HuibApp</div>
+      <div className="text-xl md:text-2xl font-bold text-red-600">CCF Resto</div>
 
       {/* Desktop Navigation */}
       <div className="hidden md:flex flex-1 justify-center">

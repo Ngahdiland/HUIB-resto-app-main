@@ -112,7 +112,7 @@ const GeneralAnalysis = () => {
     labels: analyticsData.revenueData.map(item => item.date),
     datasets: [
       {
-        label: selectedMetric === 'revenue' ? 'Revenue ($)' : 'Orders',
+        label: selectedMetric === 'revenue' ? 'Revenue (FCFA)' : 'Orders',
         data: analyticsData.revenueData.map(item => 
           selectedMetric === 'revenue' ? item.revenue : item.orders
         ),
@@ -147,7 +147,7 @@ const GeneralAnalysis = () => {
         callbacks: {
           label: function(context: any) {
             return selectedMetric === 'revenue' 
-              ? `Revenue: $${context.parsed.y.toLocaleString()}`
+              ? `Revenue: ${context.parsed.y.toLocaleString()} FCFA`
               : `Orders: ${context.parsed.y}`;
           }
         }
@@ -176,7 +176,7 @@ const GeneralAnalysis = () => {
           },
           callback: function(value: any) {
             return selectedMetric === 'revenue' 
-              ? `$${value.toLocaleString()}`
+              ? `${value.toLocaleString()} FCFA`
               : value;
           }
         }
@@ -338,7 +338,7 @@ const GeneralAnalysis = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-              <p className="text-2xl font-bold text-gray-800">${analyticsData.overview.totalRevenue.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-800">{analyticsData.overview.totalRevenue.toLocaleString()} FCFA</p>
               <div className="flex items-center mt-2">
                 {getChangeIcon(analyticsData.overview.revenueChange)}
                 <span className={`text-sm ${getChangeColor(analyticsData.overview.revenueChange)}`}>
@@ -476,7 +476,7 @@ const GeneralAnalysis = () => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-gray-800">${product.revenue.toFixed(2)}</p>
+                  <p className="font-semibold text-gray-800">{product.revenue.toFixed(0)} FCFA</p>
                   <p className={`text-xs ${getChangeColor(product.growth)}`}>
                     +{product.growth}%
                   </p>
@@ -571,10 +571,10 @@ const GeneralAnalysis = () => {
                     {location.orders}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
-                    ${location.revenue.toFixed(2)}
+                    {location.revenue.toFixed(0)} FCFA
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${(location.revenue / location.orders).toFixed(2)}
+                    {(location.revenue / location.orders).toFixed(0)} FCFA
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">

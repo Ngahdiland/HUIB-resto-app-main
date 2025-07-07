@@ -37,7 +37,8 @@ const Checkout = () => {
     cardNumber: '',
     cardName: '',
     expiryDate: '',
-    cvv: ''
+    cvv: '',
+    method: ''
   });
 
   const getSubtotal = () => {
@@ -264,6 +265,22 @@ const Checkout = () => {
                     Payment Information
                   </h2>
 
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Payment Method</label>
+                    <select
+                      value={paymentInfo.method}
+                      onChange={e => setPaymentInfo(prev => ({ ...prev, method: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      required
+                    >
+                      <option value="">Select a payment method</option>
+                      <option value="mtn_momo">MTN MoMo</option>
+                      <option value="orange_money">Orange Money</option>
+                      <option value="credit_card">Credit Card</option>
+                      <option value="cash_on_delivery">Cash on Delivery</option>
+                    </select>
+                  </div>
+
                   <div className="mb-6">
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Card Number</label>
                     <input
@@ -354,7 +371,7 @@ const Checkout = () => {
                       <div className="text-sm text-gray-600">Qty: {item.quantity}</div>
                     </div>
                     <div className="font-semibold text-gray-800">
-                      ${(item.price * item.quantity).toFixed(2)}
+                      {(item.price * item.quantity).toFixed(0)} FCFA
                     </div>
                   </div>
                 ))}
@@ -363,22 +380,22 @@ const Checkout = () => {
               <div className="border-t pt-4 space-y-2">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="font-semibold">${getSubtotal().toFixed(2)}</span>
+                  <span className="font-semibold">{getSubtotal().toFixed(0)} FCFA</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Tax (8%)</span>
-                  <span className="font-semibold">${getTax().toFixed(2)}</span>
+                  <span className="font-semibold">{getTax().toFixed(0)} FCFA</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Delivery Fee</span>
                   <span className="font-semibold">
-                    {getDeliveryFee() === 0 ? 'Free' : `$${getDeliveryFee().toFixed(2)}`}
+                    {getDeliveryFee() === 0 ? 'Free' : `${getDeliveryFee().toFixed(0)} FCFA`}
                   </span>
                 </div>
                 <div className="border-t pt-2">
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>
-                    <span className="text-red-600">${getTotal().toFixed(2)}</span>
+                    <span className="text-red-600">{getTotal().toFixed(0)} FCFA</span>
                   </div>
                 </div>
               </div>
@@ -386,7 +403,7 @@ const Checkout = () => {
               {getDeliveryFee() > 0 && (
                 <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
                   <p className="text-sm text-green-800">
-                    Add ${(50 - getSubtotal()).toFixed(2)} more for free delivery!
+                    Add {(50000 - getSubtotal()).toFixed(0)} FCFA more for free delivery!
                   </p>
                 </div>
               )}

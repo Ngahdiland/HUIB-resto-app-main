@@ -139,7 +139,7 @@ const Home = () => {
       <section className="py-12 md:py-16 bg-gray-50">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-8 md:mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Why Choose HuibApp?</h2>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Why Choose CCF Resto?</h2>
             <p className="text-lg md:text-xl text-gray-600">We provide the best food delivery experience</p>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
@@ -179,7 +179,7 @@ const Home = () => {
                   </div>
                   <p className="text-xs md:text-sm text-gray-600 mb-3">{food.description}</p>
                   <div className="flex justify-between items-center">
-                    <span className="text-lg md:text-xl font-bold text-red-600">${food.price}</span>
+                    <span className="text-lg md:text-xl font-bold text-red-600">{food.price} FCFA</span>
                     <button className="bg-red-600 text-white px-3 md:px-4 py-1 md:py-2 rounded hover:bg-red-700 transition-colors text-sm">
                       Add to Cart
                     </button>
@@ -196,16 +196,12 @@ const Home = () => {
         <div className="max-w-6xl mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
             <div>
-              <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4 md:mb-6">About HuibApp</h2>
+              <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4 md:mb-6">About CCF Resto</h2>
               <p className="text-base md:text-lg text-gray-600 mb-4 md:mb-6">
-                HuibApp is your premier food delivery platform, connecting you with the best restaurants 
-                and chefs in your area. We're committed to delivering not just food, but exceptional 
-                dining experiences right to your doorstep.
+                CCF Resto is Cameroon's premier food ordering platform, celebrating the rich culinary heritage of Cameroon. We connect you with the best local chefs and restaurants, bringing authentic traditional meals from all regions of Cameroon right to your doorstep.
               </p>
               <p className="text-base md:text-lg text-gray-600 mb-6 md:mb-8">
-                Founded with a passion for great food and excellent service, we've built a platform 
-                that makes ordering food simple, fast, and enjoyable. Our team works tirelessly to 
-                ensure every order is perfect.
+                From Ndolé and Eru in the Southwest, to Achu in the Northwest, Koki from the Littoral, and Sanga from the Center, our menu is a journey through Cameroon's diverse and delicious food culture. Experience the taste of home, wherever you are in Cameroon!
               </p>
               <div className="grid grid-cols-3 gap-4">
                 <div className="text-center">
@@ -225,7 +221,7 @@ const Home = () => {
             <div className="text-center">
               <img 
                 src="/assets/about_img.png" 
-                alt="About HuibApp" 
+                alt="About CCF Resto" 
                 className="w-full max-w-sm md:max-w-md mx-auto rounded-lg"
               />
             </div>
@@ -274,7 +270,7 @@ const Home = () => {
                 <FaEnvelope />
               </div>
               <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-2">Email</h3>
-              <p className="text-sm md:text-base text-gray-600">info@huibapp.com</p>
+              <p className="text-sm md:text-base text-gray-600">info@CCFResto.com</p>
             </div>
             <div className="text-center p-4 md:p-6 bg-white rounded-lg shadow-md">
               <div className="text-2xl md:text-3xl text-red-600 mb-3 md:mb-4">

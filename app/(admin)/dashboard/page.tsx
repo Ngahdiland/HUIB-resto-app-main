@@ -54,7 +54,7 @@ const Dashboard = () => {
     },
     {
       title: 'Revenue',
-      value: '$45,678',
+      value: '45,678 FCFA',
       change: '+15.3%',
       trend: 'up',
       icon: <FaDollarSign className="text-2xl" />,
@@ -163,7 +163,7 @@ const Dashboard = () => {
     labels: chartData.map(item => item.date),
     datasets: [
       {
-        label: selectedMetric === 'revenue' ? 'Revenue ($)' : 'Orders',
+        label: selectedMetric === 'revenue' ? 'Revenue (FCFA)' : 'Orders',
         data: chartData.map(item => 
           selectedMetric === 'revenue' ? item.revenue : item.orders
         ),
@@ -198,7 +198,7 @@ const Dashboard = () => {
         callbacks: {
           label: function(context: any) {
             return selectedMetric === 'revenue' 
-              ? `Revenue: $${context.parsed.y.toLocaleString()}`
+              ? `Revenue: ${context.parsed.y.toLocaleString()} FCFA`
               : `Orders: ${context.parsed.y}`;
           }
         }
@@ -227,7 +227,7 @@ const Dashboard = () => {
           },
           callback: function(value: any) {
             return selectedMetric === 'revenue' 
-              ? `$${value.toLocaleString()}`
+              ? `${value.toLocaleString()} FCFA`
               : value;
           }
         }
@@ -474,7 +474,7 @@ const Dashboard = () => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="font-semibold text-gray-800">${product.revenue.toFixed(2)}</p>
+                  <p className="font-semibold text-gray-800">{product.revenue.toFixed(0)} FCFA</p>
                 </div>
               </div>
             ))}
@@ -529,7 +529,7 @@ const Dashboard = () => {
                     {order.items}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                    ${order.total.toFixed(2)}
+                    {order.total.toFixed(0)} FCFA
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>

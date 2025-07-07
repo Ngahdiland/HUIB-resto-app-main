@@ -152,10 +152,7 @@ const Settings = () => {
                       onChange={(e) => handleSettingChange('business', 'currency', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     >
-                      <option value="USD">USD ($)</option>
-                      <option value="EUR">EUR (€)</option>
-                      <option value="GBP">GBP (£)</option>
-                      <option value="CAD">CAD (C$)</option>
+                      <option value="FCFA">FCFA</option>
                     </select>
                   </div>
                   <div>
@@ -246,8 +243,8 @@ const Settings = () => {
                     <div className="flex items-center space-x-3">
                       <FaCreditCard className="text-blue-600" />
                       <div>
-                        <h4 className="font-medium text-gray-800">Stripe</h4>
-                        <p className="text-sm text-gray-500">Credit card payments</p>
+                        <h4 className="font-medium text-gray-800">MTN MoMo</h4>
+                        <p className="text-sm text-gray-500">MTN Mobile Money payments</p>
                       </div>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
@@ -264,8 +261,8 @@ const Settings = () => {
                     <div className="flex items-center space-x-3">
                       <FaCreditCard className="text-blue-500" />
                       <div>
-                        <h4 className="font-medium text-gray-800">PayPal</h4>
-                        <p className="text-sm text-gray-500">PayPal payments</p>
+                        <h4 className="font-medium text-gray-800">Orange Money</h4>
+                        <p className="text-sm text-gray-500">Orange Money payments</p>
                       </div>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
@@ -280,10 +277,10 @@ const Settings = () => {
                   </div>
                   <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                     <div className="flex items-center space-x-3">
-                      <FaTruck className="text-green-600" />
+                      <FaCreditCard className="text-blue-500" />
                       <div>
-                        <h4 className="font-medium text-gray-800">Cash on Delivery</h4>
-                        <p className="text-sm text-gray-500">Pay when you receive</p>
+                        <h4 className="font-medium text-gray-800">Credit Card</h4>
+                        <p className="text-sm text-gray-500">Credit Card payments</p>
                       </div>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer">
@@ -364,7 +361,7 @@ const Settings = () => {
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">Delivery Configuration</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Delivery Fee ($)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Delivery Fee (FCFA)</label>
                     <input
                       type="number"
                       step="0.01"
@@ -374,7 +371,7 @@ const Settings = () => {
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Free Delivery Threshold ($)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Free Delivery Threshold (FCFA)</label>
                     <input
                       type="number"
                       step="0.01"

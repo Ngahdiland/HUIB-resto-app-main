@@ -23,100 +23,122 @@ const Menu = () => {
   const [cart, setCart] = useState<{ [key: string]: number }>({});
   const [loading, setLoading] = useState(true);
 
-  // Sample products data (replace with API call)
+  const categories = [
+    { value: 'all', label: 'All Regions' },
+    { value: 'adamawa', label: 'Adamawa' },
+    { value: 'centre', label: 'Centre' },
+    { value: 'east', label: 'East' },
+    { value: 'far_north', label: 'Far North' },
+    { value: 'littoral', label: 'Littoral' },
+    { value: 'north', label: 'North' },
+    { value: 'northwest', label: 'Northwest' },
+    { value: 'west', label: 'West' },
+    { value: 'south', label: 'South' },
+    { value: 'southwest', label: 'Southwest' }
+  ];
+
+  // Replace sampleProducts with Cameroonian dishes
   const sampleProducts: Product[] = [
     {
       id: '1',
-      name: 'Pizza Margherita',
-      price: 12.99,
-      image: '/assets/p_img1.png',
-      description: 'Fresh mozzarella, tomato sauce, and basil',
-      category: 'pizza',
-      rating: 4.8,
+      name: 'Ndolé',
+      price: 2500,
+      image: '/assets/ndole.jpg',
+      description: 'A rich stew of bitter leaves, peanuts, and meat or fish. Signature dish of the Littoral region.',
+      category: 'littoral',
+      rating: 4.9,
       stock: 10
     },
     {
       id: '2',
-      name: 'Burger Deluxe',
-      price: 9.99,
-      image: '/assets/p_img2.png',
-      description: 'Juicy beef patty with fresh vegetables',
-      category: 'burger',
-      rating: 4.6,
-      stock: 15
+      name: 'Eru & Water Fufu',
+      price: 2000,
+      image: '/assets/eru.jpg',
+      description: 'Eru leaves cooked with waterleaf, palm oil, and assorted meats. Popular in Southwest.',
+      category: 'southwest',
+      rating: 4.8,
+      stock: 12
     },
     {
       id: '3',
-      name: 'Sushi Platter',
-      price: 19.99,
-      image: '/assets/p_img3.png',
-      description: 'Fresh salmon, tuna, and avocado rolls',
-      category: 'sushi',
-      rating: 4.9,
+      name: 'Achu & Yellow Soup',
+      price: 2200,
+      image: '/assets/achu.jpg',
+      description: 'Pounded cocoyams with spicy yellow soup, a Northwest delicacy.',
+      category: 'northwest',
+      rating: 4.7,
       stock: 8
     },
     {
       id: '4',
-      name: 'Pasta Carbonara',
-      price: 11.99,
-      image: '/assets/p_img4.png',
-      description: 'Creamy pasta with bacon and parmesan',
-      category: 'pasta',
-      rating: 4.7,
-      stock: 12
-    },
-    {
-      id: '5',
-      name: 'Chicken Wings',
-      price: 8.99,
-      image: '/assets/p_img5.png',
-      description: 'Crispy wings with your choice of sauce',
-      category: 'appetizer',
-      rating: 4.5,
-      stock: 20
-    },
-    {
-      id: '6',
-      name: 'Caesar Salad',
-      price: 7.99,
-      image: '/assets/p_img6.png',
-      description: 'Fresh romaine lettuce with caesar dressing',
-      category: 'salad',
-      rating: 4.4,
+      name: 'Koki Beans',
+      price: 1800,
+      image: '/assets/koki.jpg',
+      description: 'Steamed black-eyed peas with red palm oil, a Littoral and Southwest favorite.',
+      category: 'littoral',
+      rating: 4.6,
       stock: 15
     },
     {
-      id: '7',
-      name: 'Steak Fajitas',
-      price: 16.99,
-      image: '/assets/p_img7.png',
-      description: 'Grilled steak with peppers and onions',
-      category: 'mexican',
+      id: '5',
+      name: 'Mbongo Tchobi',
+      price: 2300,
+      image: '/assets/mbongo.jpg',
+      description: 'Spicy black stew made with native spices and fish, from the Centre region.',
+      category: 'centre',
       rating: 4.8,
-      stock: 6
+      stock: 9
+    },
+    {
+      id: '6',
+      name: 'Sanga',
+      price: 1700,
+      image: '/assets/sanga.jpg',
+      description: 'Mixture of maize, cassava leaves, and palm oil, popular in the South.',
+      category: 'south',
+      rating: 4.5,
+      stock: 11
+    },
+    {
+      id: '7',
+      name: 'Kilishi',
+      price: 2000,
+      image: '/assets/kilishi.jpg',
+      description: 'Spicy dried beef, a specialty of the North and Far North.',
+      category: 'far_north',
+      rating: 4.7,
+      stock: 7
     },
     {
       id: '8',
-      name: 'Chocolate Cake',
-      price: 5.99,
-      image: '/assets/p_img8.png',
-      description: 'Rich chocolate cake with ganache',
-      category: 'dessert',
-      rating: 4.9,
+      name: 'Ndomba',
+      price: 2100,
+      image: '/assets/ndomba.jpg',
+      description: 'Fish or chicken wrapped in leaves and steamed with spices, common in the East.',
+      category: 'east',
+      rating: 4.6,
       stock: 10
+    },
+    {
+      id: '9',
+      name: 'Fufu Corn & Njama Njama',
+      price: 1900,
+      image: '/assets/njama.jpg',
+      description: 'Corn fufu served with huckleberry leaves, a Northwest and West favorite.',
+      category: 'west',
+      rating: 4.8,
+      stock: 13
+    },
+    {
+      id: '10',
+      name: 'Foléré Juice',
+      price: 800,
+      image: '/assets/folere.jpg',
+      description: 'Refreshing hibiscus flower juice, enjoyed across Adamawa and North.',
+      category: 'adamawa',
+      rating: 4.9,
+      stock: 20
     }
-  ];
-
-  const categories = [
-    { value: 'all', label: 'All Categories' },
-    { value: 'pizza', label: 'Pizza' },
-    { value: 'burger', label: 'Burgers' },
-    { value: 'sushi', label: 'Sushi' },
-    { value: 'pasta', label: 'Pasta' },
-    { value: 'appetizer', label: 'Appetizers' },
-    { value: 'salad', label: 'Salads' },
-    { value: 'mexican', label: 'Mexican' },
-    { value: 'dessert', label: 'Desserts' }
   ];
 
   useEffect(() => {
@@ -283,7 +305,7 @@ const Menu = () => {
                     className="w-full h-48 object-cover"
                   />
                   <div className="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 rounded-full text-sm font-semibold">
-                    ${product.price}
+                    {product.price} FCFA
                   </div>
                   {product.stock < 5 && (
                     <div className="absolute top-2 left-2 bg-yellow-500 text-white px-2 py-1 rounded-full text-sm font-semibold">
@@ -301,7 +323,7 @@ const Menu = () => {
                   </div>
                   <p className="text-gray-600 text-sm mb-4">{product.description}</p>
                   <div className="flex justify-between items-center">
-                    <span className="text-xl font-bold text-red-600">${product.price}</span>
+                    <span className="text-xl font-bold text-red-600">{product.price} FCFA</span>
                     <div className="flex items-center gap-2">
                       {cart[product.id] > 0 && (
                         <button
@@ -340,7 +362,7 @@ const Menu = () => {
                   {getCartItemCount()} items in cart
                 </p>
                 <p className="text-lg font-bold text-red-600">
-                  Total: ${getCartTotal().toFixed(2)}
+                  Total: {getCartTotal().toFixed(0)} FCFA
                 </p>
               </div>
               <div className="flex gap-4">

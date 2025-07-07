@@ -19,8 +19,11 @@ const MyOrdersPage = () => {
               <div className="text-gray-700">{order.date}</div>
               <div className="text-sm font-bold text-red-600">{order.status}</div>
             </div>
-            <div className="font-bold">${order.total.toFixed(2)}</div>
-            <Button>View</Button>
+            <div className="font-bold">{order.total.toFixed(0)} FCFA</div>
+            <div className="flex gap-2">
+              <Button>View</Button>
+              <Button variant="outline" className="border-red-600 text-red-600 hover:bg-red-50">Leave a Review</Button>
+            </div>
           </div>
         ))}
       </div>

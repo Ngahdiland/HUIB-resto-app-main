@@ -191,10 +191,10 @@ const Cart = () => {
                         </div>
                         <div className="text-right">
                           <div className="font-semibold text-gray-800">
-                            ${(item.price * item.quantity).toFixed(2)}
+                            {(item.price * item.quantity).toFixed(0)} FCFA
                           </div>
                           <div className="text-sm text-gray-600">
-                            ${item.price.toFixed(2)} each
+                            {item.price.toFixed(0)} FCFA each
                           </div>
                         </div>
                       </div>
@@ -213,27 +213,27 @@ const Cart = () => {
               <div className="space-y-4 mb-6">
                 <div className="flex justify-between">
                   <span className="text-gray-600">Subtotal</span>
-                  <span className="font-semibold">${getSubtotal().toFixed(2)}</span>
+                  <span className="font-semibold">{getSubtotal().toFixed(0)} FCFA</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Tax (8%)</span>
-                  <span className="font-semibold">${getTax().toFixed(2)}</span>
+                  <span className="font-semibold">{getTax().toFixed(0)} FCFA</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-600">Delivery Fee</span>
                   <span className="font-semibold">
-                    {getDeliveryFee() === 0 ? 'Free' : `$${getDeliveryFee().toFixed(2)}`}
+                    {getDeliveryFee() === 0 ? 'Free' : `${getDeliveryFee().toFixed(0)} FCFA`}
                   </span>
                 </div>
                 {getDeliveryFee() > 0 && (
                   <div className="text-sm text-green-600 bg-green-50 p-2 rounded">
-                    Add ${(50 - getSubtotal()).toFixed(2)} more for free delivery!
+                    Add {(50000 - getSubtotal()).toFixed(0)} FCFA more for free delivery!
                   </div>
                 )}
                 <div className="border-t pt-4">
                   <div className="flex justify-between text-lg font-bold">
                     <span>Total</span>
-                    <span className="text-red-600">${getTotal().toFixed(2)}</span>
+                    <span className="text-red-600">{getTotal().toFixed(0)} FCFA</span>
                   </div>
                 </div>
               </div>

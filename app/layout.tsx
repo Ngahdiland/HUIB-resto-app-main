@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "HuibApp",
+  title: "CCF Resto",
   description: "Food ordering system",
 };
 

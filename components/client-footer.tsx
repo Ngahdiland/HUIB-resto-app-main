@@ -8,7 +8,7 @@ const ClientFooter = () => {
         <div className="w-full px-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 max-w-6xl mx-auto">
             <div>
-              <h3 className="text-xl md:text-2xl font-bold text-red-400 mb-3 md:mb-4">HuibApp</h3>
+              <h3 className="text-xl md:text-2xl font-bold text-red-400 mb-3 md:mb-4">CCF Resto</h3>
               <p className="text-sm md:text-base text-gray-300 mb-3 md:mb-4">
                 Your premier food delivery platform. Fast, fresh, and delicious food delivered to your door.
               </p>
@@ -51,7 +51,7 @@ const ClientFooter = () => {
           </div>
           <div className="border-t border-gray-700 mt-6 md:mt-8 pt-6 md:pt-8 text-center max-w-6xl mx-auto">
             <p className="text-sm md:text-base text-gray-300">
-              © 2024 HuibApp. All rights reserved. | Privacy Policy | Terms of Service
+              © 2025 CCF Resto. All rights reserved. | Privacy Policy | Terms of Service
             </p>
           </div>
         </div>

@@ -17,19 +17,19 @@ const Payments = () => {
         name: 'John Doe',
         email: 'john@example.com'
       },
-      amount: 34.97,
+      amount: 34970,
       method: 'credit_card',
       status: 'completed',
       transactionId: 'TXN-123456789',
       date: '2024-01-15 14:30',
       processedDate: '2024-01-15 14:32',
-      gateway: 'Stripe',
-      fee: 1.05,
-      netAmount: 33.92,
+      gateway: 'Credit Card',
+      fee: 1050,
+      netAmount: 33920,
       refundAmount: 0,
-      currency: 'USD',
+      currency: 'FCFA',
       description: 'Payment for order ORD-001',
-      billingAddress: '123 Main St, City, State 12345',
+      billingAddress: '123 Main St, Yaoundé',
       last4: '4242'
     },
     {
@@ -39,19 +39,19 @@ const Payments = () => {
         name: 'Jane Smith',
         email: 'jane@example.com'
       },
-      amount: 17.98,
-      method: 'paypal',
+      amount: 17980,
+      method: 'mtn_momo',
       status: 'completed',
-      transactionId: 'TXN-987654321',
+      transactionId: 'MTN-987654321',
       date: '2024-01-15 13:45',
       processedDate: '2024-01-15 13:47',
-      gateway: 'PayPal',
-      fee: 0.89,
-      netAmount: 17.09,
+      gateway: 'MTN MoMo',
+      fee: 500,
+      netAmount: 17480,
       refundAmount: 0,
-      currency: 'USD',
+      currency: 'FCFA',
       description: 'Payment for order ORD-002',
-      billingAddress: '456 Oak Ave, City, State 12345',
+      billingAddress: '456 Oak Ave, Douala',
       last4: null
     },
     {
@@ -61,19 +61,19 @@ const Payments = () => {
         name: 'Mike Johnson',
         email: 'mike@example.com'
       },
-      amount: 33.97,
-      method: 'cash',
+      amount: 33970,
+      method: 'cash_on_delivery',
       status: 'pending',
       transactionId: null,
       date: '2024-01-15 13:20',
       processedDate: null,
       gateway: 'Cash on Delivery',
       fee: 0,
-      netAmount: 33.97,
+      netAmount: 33970,
       refundAmount: 0,
-      currency: 'USD',
+      currency: 'FCFA',
       description: 'Cash payment for order ORD-003',
-      billingAddress: '789 Pine St, City, State 12345',
+      billingAddress: '789 Pine St, Bamenda',
       last4: null
     },
     {
@@ -83,20 +83,20 @@ const Payments = () => {
         name: 'Sarah Wilson',
         email: 'sarah@example.com'
       },
-      amount: 18.99,
-      method: 'credit_card',
+      amount: 18990,
+      method: 'orange_money',
       status: 'failed',
-      transactionId: 'TXN-456789123',
+      transactionId: 'OM-456789123',
       date: '2024-01-15 12:55',
       processedDate: null,
-      gateway: 'Stripe',
+      gateway: 'Orange Money',
       fee: 0,
       netAmount: 0,
       refundAmount: 0,
-      currency: 'USD',
+      currency: 'FCFA',
       description: 'Payment for order ORD-004',
-      billingAddress: '321 Elm St, City, State 12345',
-      last4: '1111'
+      billingAddress: '321 Elm St, Bafoussam',
+      last4: null
     },
     {
       id: 'PAY-005',
@@ -105,19 +105,19 @@ const Payments = () => {
         name: 'David Brown',
         email: 'david@example.com'
       },
-      amount: 45.50,
+      amount: 45500,
       method: 'credit_card',
       status: 'refunded',
       transactionId: 'TXN-789123456',
       date: '2024-01-15 11:30',
       processedDate: '2024-01-15 11:32',
-      gateway: 'Stripe',
-      fee: 1.37,
-      netAmount: 44.13,
-      refundAmount: 45.50,
-      currency: 'USD',
+      gateway: 'Credit Card',
+      fee: 1370,
+      netAmount: 44130,
+      refundAmount: 45500,
+      currency: 'FCFA',
       description: 'Payment for order ORD-005',
-      billingAddress: '654 Maple Dr, City, State 12345',
+      billingAddress: '654 Maple Dr, Garoua',
       last4: '5555'
     }
   ];
@@ -136,8 +136,9 @@ const Payments = () => {
   const getMethodIcon = (method: string) => {
     switch (method) {
       case 'credit_card': return <FaCreditCard className="text-blue-600" />;
-      case 'paypal': return <FaPaypal className="text-blue-500" />;
-      case 'cash': return <FaMoneyBillWave className="text-green-600" />;
+      case 'mtn_momo': return <span className="text-yellow-600 font-bold">MTN</span>;
+      case 'orange_money': return <span className="text-orange-500 font-bold">OM</span>;
+      case 'cash_on_delivery': return <FaMoneyBillWave className="text-green-600" />;
       default: return <FaDollarSign className="text-gray-600" />;
     }
   };
@@ -145,8 +146,9 @@ const Payments = () => {
   const getMethodColor = (method: string) => {
     switch (method) {
       case 'credit_card': return 'bg-blue-100 text-blue-800';
-      case 'paypal': return 'bg-blue-100 text-blue-800';
-      case 'cash': return 'bg-green-100 text-green-800';
+      case 'mtn_momo': return 'bg-yellow-100 text-yellow-800';
+      case 'orange_money': return 'bg-orange-100 text-orange-800';
+      case 'cash_on_delivery': return 'bg-green-100 text-green-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
@@ -195,7 +197,7 @@ const Payments = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-              <p className="text-2xl font-bold text-gray-800">${totalRevenue.toFixed(2)}</p>
+              <p className="text-2xl font-bold text-gray-800">{totalRevenue.toFixed(0)} FCFA</p>
             </div>
           </div>
         </div>
@@ -206,7 +208,7 @@ const Payments = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Total Fees</p>
-              <p className="text-2xl font-bold text-gray-800">${totalFees.toFixed(2)}</p>
+              <p className="text-2xl font-bold text-gray-800">{totalFees.toFixed(0)} FCFA</p>
             </div>
           </div>
         </div>
@@ -217,7 +219,7 @@ const Payments = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Pending Amount</p>
-              <p className="text-2xl font-bold text-gray-800">${pendingAmount.toFixed(2)}</p>
+              <p className="text-2xl font-bold text-gray-800">{pendingAmount.toFixed(0)} FCFA</p>
             </div>
           </div>
         </div>
@@ -228,7 +230,7 @@ const Payments = () => {
             </div>
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">Failed Amount</p>
-              <p className="text-2xl font-bold text-gray-800">${failedAmount.toFixed(2)}</p>
+              <p className="text-2xl font-bold text-gray-800">{failedAmount.toFixed(0)} FCFA</p>
             </div>
           </div>
         </div>
@@ -274,8 +276,9 @@ const Payments = () => {
             >
               <option value="all">All Methods</option>
               <option value="credit_card">Credit Card</option>
-              <option value="paypal">PayPal</option>
-              <option value="cash">Cash</option>
+              <option value="mtn_momo">MTN MoMo</option>
+              <option value="orange_money">Orange Money</option>
+              <option value="cash_on_delivery">Cash on Delivery</option>
             </select>
           </div>
           <div className="flex items-end">
@@ -336,12 +339,12 @@ const Payments = () => {
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div>
-                      <div className="text-sm font-semibold text-gray-900">${payment.amount.toFixed(2)}</div>
+                      <div className="text-sm font-semibold text-gray-900">{payment.amount.toFixed(0)} FCFA</div>
                       {payment.fee > 0 && (
-                        <div className="text-xs text-gray-500">Fee: ${payment.fee.toFixed(2)}</div>
+                        <div className="text-xs text-gray-500">Fee: {payment.fee.toFixed(0)} FCFA</div>
                       )}
                       {payment.refundAmount > 0 && (
-                        <div className="text-xs text-red-500">Refunded: ${payment.refundAmount.toFixed(2)}</div>
+                        <div className="text-xs text-red-500">Refunded: {payment.refundAmount.toFixed(0)} FCFA</div>
                       )}
                     </div>
                   </td>

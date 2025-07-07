@@ -343,7 +343,7 @@ const Profile = () => {
                     <p className="text-gray-600">{new Date(order.date).toLocaleDateString()}</p>
                   </div>
                   <div className="text-right">
-                    <div className="text-xl font-bold text-red-600">${order.total.toFixed(2)}</div>
+                    <div className="text-xl font-bold text-red-600">{order.total.toFixed(0)} FCFA</div>
                     <div className={`inline-block px-3 py-1 rounded-full text-sm font-semibold ${getStatusColor(order.status)}`}>
                       <span className="mr-1">{getStatusIcon(order.status)}</span>
                       {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
@@ -355,7 +355,7 @@ const Profile = () => {
                   {order.items.map((item, index) => (
                     <div key={index} className="flex justify-between text-sm">
                       <span>{item.name} x{item.quantity}</span>
-                      <span>${(item.price * item.quantity).toFixed(2)}</span>
+                      <span>{(item.price * item.quantity).toFixed(0)} FCFA</span>
                     </div>
                   ))}
                 </div>
@@ -387,7 +387,7 @@ const Profile = () => {
                     <div className={`font-semibold ${
                       transaction.type === 'payment' ? 'text-red-600' : 'text-green-600'
                     }`}>
-                      {transaction.type === 'payment' ? '-' : '+'}${transaction.amount.toFixed(2)}
+                      {transaction.type === 'payment' ? '-' : '+'}{transaction.amount.toFixed(0)} FCFA
                     </div>
                     <div className="text-sm text-gray-600 capitalize">{transaction.type}</div>
                   </div>
