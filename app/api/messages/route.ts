@@ -1,28 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { verifyJWT } from '@/middleware/jwt';
+import { readJson, writeJson } from '@/lib/jsonDb';
 
-// GET all messages (admin) or user messages
-export async function GET(req: NextRequest) {
-  const auth = verifyJWT(req);
-  if ((auth as any).error) return auth;
-  const user = auth as any;
-  let messages;
-  if (user.role === 'admin') {
-    messages = await prisma.message.findMany();
-  } else {
-    messages = await prisma.message.findMany({ where: { userId: user.id } });
-  }
+export async function GET() {
+  const messages = await readJson('messages.json');
   return NextResponse.json(messages);
 }
 
-// POST create message (user)
 export async function POST(req: NextRequest) {
-  const auth = verifyJWT(req, ['customer']);
-  if ((auth as any).error) return auth;
-  const { content } = await req.json();
-  const message = await prisma.message.create({
-    data: { userId: (auth as any).id, content, status: 'open' },
-  });
-  return NextResponse.json(message);
+  const { userId, content, type, status, response } = await req.json();
+  if (!userId || !content) {
+    return NextResponse.json({ error: 'Missing required fields', message: 'userId and content are required' }, { status: 400 });
+  }
+  const messages = await readJson('messages.json');
+  const newMessage = {
+    id: Date.now().toString(),
+    userId,
+    content,
+    type: type || 'support',
+    status: status || 'open',
+    response,
+    createdAt: new Date().toISOString(),
+  };
+  messages.push(newMessage);
+  await writeJson('messages.json', messages);
+  return NextResponse.json(newMessage);
 }

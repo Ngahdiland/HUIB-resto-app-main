@@ -1,28 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { verifyJWT } from '@/middleware/jwt';
+import { readJson, writeJson } from '@/lib/jsonDb';
 
-// GET all orders (admin) or user orders
-export async function GET(req: NextRequest) {
-  const auth = verifyJWT(req);
-  if ((auth as any).error) return auth;
-  const user = auth as any;
-  let orders;
-  if (user.role === 'admin') {
-    orders = await prisma.order.findMany();
-  } else {
-    orders = await prisma.order.findMany({ where: { userId: user.id } });
-  }
+export async function GET() {
+  const orders = await readJson('orders.json');
   return NextResponse.json(orders);
 }
 
-// POST create order (user)
 export async function POST(req: NextRequest) {
-  const auth = verifyJWT(req, ['customer']);
-  if ((auth as any).error) return auth;
-  const { items, total } = await req.json();
-  const order = await prisma.order.create({
-    data: { userId: (auth as any).id, items, total, status: 'pending' },
-  });
-  return NextResponse.json(order);
+  const { userId, items, total, status, address } = await req.json();
+  if (!userId || !items || !total) {
+    return NextResponse.json({ error: 'Missing required fields', message: 'userId, items, and total are required' }, { status: 400 });
+  }
+  const orders = await readJson('orders.json');
+  const newOrder = {
+    id: Date.now().toString(),
+    userId,
+    items,
+    total,
+    status: status || 'pending',
+    address,
+    createdAt: new Date().toISOString(),
+  };
+  orders.push(newOrder);
+  await writeJson('orders.json', orders);
+  return NextResponse.json(newOrder);
 }

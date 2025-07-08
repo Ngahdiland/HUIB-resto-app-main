@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { FaShoppingCart, FaBars, FaTimes } from 'react-icons/fa';
@@ -7,29 +7,75 @@ import { FaShoppingCart, FaBars, FaTimes } from 'react-icons/fa';
 const navLinks = [
   { href: '/', label: 'Home' },
   { href: '/menu', label: 'Menu' },
-  { href: '/#about', label: 'About' },
-  { href: '/#contact', label: 'Contact' },
-  { href: '/#how-to-order', label: 'How to Order' },
+  { href: '/#about', label: 'About', section: 'about' },
+  { href: '/#contact', label: 'Contact', section: 'contact' },
 ];
 
 const rightLinks = [
   { href: '/cart', label: <FaShoppingCart size={18} /> },
   { href: '/profile', label: 'Profile' },
-  // { href: '/login', label: 'Login' },
 ];
 
 const Navbar = () => {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeSection, setActiveSection] = useState<string>('');
 
-  const linkClass = (href: string) =>
-    `relative text-red-600 px-3 py-1 rounded transition-colors duration-200
-    hover:bg-red-500 hover:text-white
-    ${pathname === href ? 'active-link' : ''}`;
+  // Scrollspy effect
+  useEffect(() => {
+    if (pathname !== '/') return;
+    const handleScroll = () => {
+      const sections = ['about', 'contact', 'how-to-order'];
+      let found = '';
+      for (const section of sections) {
+        const el = document.getElementById(section);
+        if (el) {
+          const rect = el.getBoundingClientRect();
+          if (rect.top <= 80 && rect.bottom > 80) {
+            found = section;
+            break;
+          }
+        }
+      }
+      setActiveSection(found);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    handleScroll(); // Initial check
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, [pathname]);
 
-  const mobileLinkClass = (href: string) =>
-    `block w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors
-    ${pathname === href ? 'bg-red-50 text-red-700' : ''}`;
+  // When clicking a hash link, set activeSection
+  const handleNavClick = (section?: string) => {
+    if (section) setActiveSection(section);
+    setIsMobileMenuOpen(false);
+  };
+
+  const linkClass = (href: string, section?: string) => {
+    let isActive = false;
+    if (href === pathname) {
+      isActive = true;
+    } else if (href.startsWith('/#')) {
+      if (pathname === '/') {
+        isActive = activeSection === section;
+      }
+    }
+    return `relative text-red-600 px-3 py-1 rounded transition-colors duration-200
+      hover:bg-red-500 hover:text-white
+      ${isActive ? 'active-link' : ''}`;
+  };
+
+  const mobileLinkClass = (href: string, section?: string) => {
+    let isActive = false;
+    if (href === pathname) {
+      isActive = true;
+    } else if (href.startsWith('/#')) {
+      if (pathname === '/') {
+        isActive = activeSection === section;
+      }
+    }
+    return `block w-full text-left px-4 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors
+      ${isActive ? 'bg-red-50 text-red-700' : ''}`;
+  };
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -47,11 +93,12 @@ const Navbar = () => {
             <Link
               key={link.href}
               href={link.href}
-              className={linkClass(link.href)}
+              className={linkClass(link.href, link.section)}
               scroll={link.href.startsWith('/#')}
+              onClick={() => handleNavClick(link.section)}
             >
               <span className="relative z-10">{link.label}</span>
-              {pathname === link.href && (
+              {linkClass(link.href, link.section).includes('active-link') && (
                 <span className="absolute left-0 right-0 -bottom-1 h-0.5 bg-red-500 rounded transition-all duration-300 animate-active-line" />
               )}
             </Link>
@@ -68,7 +115,7 @@ const Navbar = () => {
             className={linkClass(link.href)}
           >
             <span className="relative z-10">{link.label}</span>
-            {pathname === link.href && (
+            {linkClass(link.href).includes('active-link') && (
               <span className="absolute left-0 right-0 -bottom-1 h-0.5 bg-red-500 rounded transition-all duration-300 animate-active-line" />
             )}
           </Link>
@@ -99,8 +146,8 @@ const Navbar = () => {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={mobileLinkClass(link.href)}
-                    onClick={toggleMobileMenu}
+                    className={mobileLinkClass(link.href, link.section)}
+                    onClick={() => handleNavClick(link.section)}
                     scroll={link.href.startsWith('/#')}
                   >
                     {link.label}
