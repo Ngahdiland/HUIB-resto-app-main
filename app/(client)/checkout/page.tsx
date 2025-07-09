@@ -32,6 +32,8 @@ const Checkout = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { cart, clearCart } = useCart();
   const checkoutItems = Object.values(cart);
+  const [paymentMethod, setPaymentMethod] = useState('');
+  const [copiedNumber, setCopiedNumber] = useState<string | null>(null);
 
   // Poll for order status if user has placed an order
   useEffect(() => {
@@ -70,9 +72,10 @@ const Checkout = () => {
   };
 
   const handleCopy = (text: string) => {
+    if (!text || typeof text !== 'string') return;
     navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1500);
+    setCopiedNumber(text);
+    setTimeout(() => setCopiedNumber(null), 1500);
   };
 
   const handleReceiptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -99,6 +102,24 @@ const Checkout = () => {
       })),
       total: getTotal(),
     };
+    // Save payment info
+    const paymentInfo = {
+      amountPaid: getTotal(),
+      paymentId: 'PAY-' + Date.now(),
+      userName: userInfo.name,
+      paymentMethod,
+      phoneNumber: userInfo.phone,
+      status: 'pending',
+      date: new Date().toISOString(),
+      action: 'order',
+      email: user.email,
+    };
+    await fetch('/api/payments/new', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(paymentInfo),
+    });
+    // Save order
     const res = await fetch('/api/orders/new', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -387,26 +408,47 @@ const Checkout = () => {
             <div className="lg:col-span-2">
               <div className="bg-white rounded-lg shadow-md p-6">
                 <h2 className="text-2xl font-bold text-gray-800 mb-6">Payment Instructions</h2>
-                <div className="mb-6">
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="font-semibold text-gray-700">Send payment to:</span>
-                  </div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="font-mono text-lg text-gray-900">677828170</span>
+                <div className="mb-4">
+                  <label className="block font-semibold mb-1">Payment Method</label>
+                  <select
+                    className="w-full border rounded px-4 py-2"
+                    value={paymentMethod}
+                    onChange={e => setPaymentMethod(e.target.value)}
+                    required
+                  >
+                    <option value="">Select payment method</option>
+                    <option value="mtn">MTN Mobile Money</option>
+                    <option value="orange">Orange Money</option>
+                  </select>
+                </div>
+                {paymentMethod === 'mtn' && (
+                  <div className="mb-4 bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded flex items-center justify-between">
+                    <div>
+                      <b>MTN Number:</b> <span id="mtn-number">677828170</span>
+                    </div>
                     <button
-                      type="button"
+                      className="ml-4 px-2 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500"
                       onClick={() => handleCopy('677828170')}
-                      className="p-1 rounded bg-gray-100 hover:bg-gray-200 border border-gray-300"
+                      type="button"
                     >
-                      <FaCopy className="inline" />
-                      {copied && <span className="ml-1 text-green-600 text-xs">Copied!</span>}
+                      {copiedNumber === '677828170' ? 'Copied' : 'Copy'}
                     </button>
                   </div>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="font-semibold text-gray-700">Name:</span>
-                    <span className="font-mono text-lg text-gray-900">Diland fonyuy</span>
+                )}
+                {paymentMethod === 'orange' && (
+                  <div className="mb-4 bg-orange-50 border-l-4 border-orange-400 p-3 rounded flex items-center justify-between">
+                    <div>
+                      <b>Orange Money Number:</b> <span id="orange-number">693276652</span>
+                    </div>
+                    <button
+                      className="ml-4 px-2 py-1 bg-orange-400 text-white rounded hover:bg-orange-500"
+                      onClick={() => handleCopy('693276652')}
+                      type="button"
+                    >
+                      {copiedNumber === '693276652' ? 'Copied' : 'Copy'}
+                    </button>
                   </div>
-                </div>
+                )}
                 <form onSubmit={handleSubmitPayment} className="space-y-6">
                   <div>
                     <label className="block text-sm font-semibold text-gray-700 mb-2">Upload Payment Receipt</label>

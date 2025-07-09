@@ -1,6 +1,34 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaSearch, FaFilter, FaEye, FaDownload, FaPrint, FaDollarSign, FaCreditCard, FaPaypal, FaMoneyBillWave } from 'react-icons/fa';
+
+interface Payment {
+  id?: string;
+  orderId?: string;
+  customer?: { name?: string; email?: string };
+  amount?: number;
+  method?: string;
+  status?: string;
+  transactionId?: string;
+  date?: string;
+  processedDate?: string;
+  gateway?: string;
+  fee?: number;
+  netAmount?: number;
+  refundAmount?: number;
+  currency?: string;
+  description?: string;
+  billingAddress?: string;
+  last4?: string;
+  // For new payment fields
+  amountPaid?: number;
+  paymentId?: string;
+  userName?: string;
+  paymentMethod?: string;
+  phoneNumber?: string;
+  action?: string;
+  email?: string;
+}
 
 const Payments = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -156,25 +184,39 @@ const Payments = () => {
   };
 
   const filteredPayments = paymentsState.filter(payment => {
-    const matchesSearch = payment.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         payment.orderId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         payment.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         payment.transactionId?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (payment.id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (payment.orderId || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (payment.customer?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (payment.transactionId || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || payment.status === statusFilter;
     const matchesMethod = methodFilter === 'all' || payment.method === methodFilter;
     return matchesSearch && matchesStatus && matchesMethod;
   });
 
-  const totalRevenue = paymentsState.filter(p => p.status === 'completed').reduce((sum, p) => sum + p.netAmount, 0);
-  const totalFees = paymentsState.filter(p => p.status === 'completed').reduce((sum, p) => sum + p.fee, 0);
-  const pendingAmount = paymentsState.filter(p => p.status === 'pending').reduce((sum, p) => sum + p.amount, 0);
-  const failedAmount = paymentsState.filter(p => p.status === 'failed').reduce((sum, p) => sum + p.amount, 0);
+  const totalRevenue = paymentsState.filter(p => p.status === 'completed').reduce((sum, p) => sum + (p.netAmount || 0), 0);
+  const totalFees = paymentsState.filter(p => p.status === 'completed').reduce((sum, p) => sum + (p.fee || 0), 0);
+  const pendingAmount = paymentsState.filter(p => p.status === 'pending').reduce((sum, p) => sum + (p.amount || 0), 0);
+  const failedAmount = paymentsState.filter(p => p.status === 'failed').reduce((sum, p) => sum + (p.amount || 0), 0);
+
+  const safeString = (val: any) => (typeof val === 'string' ? val : '');
+
+  const safeReplaceAll = (val: any, searchValue: string | RegExp, replaceValue: string): string => {
+    if (typeof val !== 'string') return '';
+    if (typeof val.replaceAll === 'function') {
+      return val.replaceAll(searchValue, replaceValue);
+    }
+    if (typeof searchValue === 'string') {
+      return val.split(searchValue).join(replaceValue);
+    }
+    return val.replace(searchValue, replaceValue);
+  };
 
   // Export payments as CSV
   const handleExport = () => {
     let csv = 'id,orderId,customer_name,customer_email,amount,method,status,transactionId,date,processedDate,gateway,fee,netAmount,refundAmount,currency,description,billingAddress,last4\n';
     filteredPayments.forEach(p => {
-      csv += `${p.id},${p.orderId},${p.customer.name},${p.customer.email},${p.amount},${p.method},${p.status},${p.transactionId || ''},${p.date},${p.processedDate || ''},${p.gateway},${p.fee},${p.netAmount},${p.refundAmount},${p.currency},"${p.description.replace(/"/g, '""')}",${p.billingAddress},${p.last4 || ''}\n`;
+      if (!p) return;
+      csv += `${safeReplaceAll(p.id, '"', '""')},${safeReplaceAll(p.orderId, '"', '""')},${safeReplaceAll(p.customer?.name, '"', '""')},${safeReplaceAll(p.customer?.email, '"', '""')},${safeReplaceAll(p.amount, '"', '""')},${safeReplaceAll(p.method, '"', '""')},${safeReplaceAll(p.status, '"', '""')},${safeReplaceAll(p.transactionId, '"', '""')},${safeReplaceAll(p.date, '"', '""')},${safeReplaceAll(p.processedDate, '"', '""')},${safeReplaceAll(p.gateway, '"', '""')},${safeReplaceAll(p.fee, '"', '""')},${safeReplaceAll(p.netAmount, '"', '""')},${safeReplaceAll(p.refundAmount, '"', '""')},${safeReplaceAll(p.currency, '"', '""')},"${safeReplaceAll(p.description, '"', '""')}",${safeReplaceAll(p.billingAddress, '"', '""')},${safeReplaceAll(p.last4, '"', '""')}\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -190,16 +232,16 @@ const Payments = () => {
   // Export general analysis as CSV
   const handleExportAnalysis = () => {
     let csv = 'Payment Analysis\n';
-    csv += `Total Revenue,${totalRevenue} FCFA\n`;
-    csv += `Total Fees,${totalFees} FCFA\n`;
-    csv += `Pending Amount,${pendingAmount} FCFA\n`;
-    csv += `Failed Amount,${failedAmount} FCFA\n`;
+    csv += `Total Revenue,${totalRevenue.toFixed(0)} FCFA\n`;
+    csv += `Total Fees,${totalFees.toFixed(0)} FCFA\n`;
+    csv += `Pending Amount,${pendingAmount.toFixed(0)} FCFA\n`;
+    csv += `Failed Amount,${failedAmount.toFixed(0)} FCFA\n`;
     csv += '\nBreakdown by Method\nMethod,Count,Total Amount\n';
     const methodMap: Record<string, { count: number; total: number }> = {};
     paymentsState.forEach(p => {
       if (!methodMap[p.method]) methodMap[p.method] = { count: 0, total: 0 };
       methodMap[p.method].count++;
-      methodMap[p.method].total += p.amount;
+      methodMap[p.method].total += (p.amount || 0);
     });
     Object.entries(methodMap).forEach(([method, data]) => {
       const d = data as { count: number; total: number };
@@ -210,7 +252,7 @@ const Payments = () => {
     paymentsState.forEach(p => {
       if (!statusMap[p.status]) statusMap[p.status] = { count: 0, total: 0 };
       statusMap[p.status].count++;
-      statusMap[p.status].total += p.amount;
+      statusMap[p.status].total += (p.amount || 0);
     });
     Object.entries(statusMap).forEach(([status, data]) => {
       const d = data as { count: number; total: number };
@@ -405,18 +447,18 @@ const Payments = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{payment.customer.name}</div>
-                        <div className="text-sm text-gray-500">{payment.customer.email}</div>
+                        <div className="text-sm font-medium text-gray-900">{payment.customer?.name || ''}</div>
+                        <div className="text-sm text-gray-500">{payment.customer?.email || ''}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-semibold text-gray-900">{payment.amount.toFixed(0)} FCFA</div>
-                        {payment.fee > 0 && (
-                          <div className="text-xs text-gray-500">Fee: {payment.fee.toFixed(0)} FCFA</div>
+                        <div className="text-sm font-semibold text-gray-900">{(payment.amount || 0).toFixed(0)} FCFA</div>
+                        {(payment.fee || 0) > 0 && (
+                          <div className="text-xs text-gray-500">Fee: {(payment.fee || 0).toFixed(0)} FCFA</div>
                         )}
-                        {payment.refundAmount > 0 && (
-                          <div className="text-xs text-red-500">Refunded: {payment.refundAmount.toFixed(0)} FCFA</div>
+                        {(payment.refundAmount || 0) > 0 && (
+                          <div className="text-xs text-red-500">Refunded: {(payment.refundAmount || 0).toFixed(0)} FCFA</div>
                         )}
                       </div>
                     </td>

@@ -24,11 +24,17 @@ interface Order {
 }
 
 interface Transaction {
-  id: string;
+  id?: string;
   date: string;
-  amount: number;
-  type: 'payment' | 'refund';
-  description: string;
+  amount?: number;
+  type?: 'payment' | 'refund';
+  description?: string;
+  paymentId?: string;
+  paymentMethod?: string;
+  phoneNumber?: string;
+  status?: string;
+  action?: string;
+  amountPaid?: number;
 }
 
 const Profile = () => {
@@ -50,6 +56,12 @@ const Profile = () => {
         .then(res => res.json())
         .then(data => {
           if (data.orders) setOrders(data.orders);
+        });
+      // Fetch payments for this user
+      fetch(`/api/payments/user?email=${encodeURIComponent(parsedUser.email)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.payments) setTransactions(data.payments);
         });
     }
     setLoading(false);
@@ -319,22 +331,27 @@ const Profile = () => {
               <h2 className="text-xl font-semibold text-gray-800">Transaction History</h2>
             </div>
             <div className="divide-y">
-              {transactions.map((transaction) => (
-                <div key={transaction.id} className="p-6 flex justify-between items-center">
-                  <div>
-                    <div className="font-semibold text-gray-800">{transaction.description}</div>
-                    <div className="text-sm text-gray-600">{new Date(transaction.date).toLocaleDateString()}</div>
-                  </div>
-                  <div className="text-right">
-                    <div className={`font-semibold ${
-                      transaction.type === 'payment' ? 'text-red-600' : 'text-green-600'
-                    }`}>
-                      {transaction.type === 'payment' ? '-' : '+'}{transaction.amount.toFixed(0)} FCFA
+              {transactions.length === 0 ? (
+                <div className="p-6 text-gray-500">No transactions found.</div>
+              ) : (
+                transactions.map((transaction, idx) => (
+                  <div key={transaction.paymentId || idx} className="p-6 flex flex-col md:flex-row md:justify-between md:items-center gap-2">
+                    <div>
+                      <div className="font-semibold text-gray-800">Payment ID: {transaction.paymentId}</div>
+                      <div className="text-sm text-gray-600">Date: {transaction.date ? new Date(transaction.date).toLocaleString() : 'N/A'}</div>
+                      <div className="text-sm text-gray-600">Method: {transaction.paymentMethod}</div>
+                      <div className="text-sm text-gray-600">Phone: {transaction.phoneNumber}</div>
+                      <div className="text-sm text-gray-600">Status: {transaction.status}</div>
+                      <div className="text-sm text-gray-600">Action: {transaction.action}</div>
                     </div>
-                    <div className="text-sm text-gray-600 capitalize">{transaction.type}</div>
+                    <div className="text-right">
+                      <div className="font-semibold text-red-600">
+                        {transaction.amountPaid ? `${transaction.amountPaid.toFixed(0)} FCFA` : 'N/A'}
+                      </div>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
             </div>
           </div>
         )}
