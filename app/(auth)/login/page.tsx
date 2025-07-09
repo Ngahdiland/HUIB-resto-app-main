@@ -10,12 +10,39 @@ export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!loginEmail || !loginPassword) {
+      alert('Please enter both email and password.');
+      return;
+    }
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: loginEmail, password: loginPassword }),
+      });
+      const data = await res.json();
+      if (res.status === 200) {
+        if (loginEmail.trim().toLowerCase() === 'fonyuydiland@gmail.com') {
+          router.push('/dashboard');
+        } else {
+          router.push('/');
+        }
+      } else {
+        alert(data.error || 'Login failed.');
+      }
+    } catch (err) {
+      alert('Server error.');
+    }
+  };
+
   return (
     <div className="flex flex-col md:flex-row w-full min-h-screen items-center justify-center bg-white">
       {/* Left: Forms */}
       <div className="flex-1 p-8 flex items-center justify-center">
         <div className="w-full max-w-md">
-          <form className="space-y-4">
+          <form className="space-y-4" onSubmit={handleSubmit}>
             <h1 className="text-3xl font-bold text-red-600 mb-4">Login</h1>
             <div>
               <label className="block mb-1 font-semibold">Email</label>

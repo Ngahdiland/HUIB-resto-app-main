@@ -12,11 +12,51 @@ export default function RegisterPage() {
   const [region, setRegion] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    // Simple client-side validation
+    if (!name || !email || !phone || !password || !address || !region) {
+      alert('Please fill in all fields.');
+      return;
+    }
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, phone, password, address, region }),
+      });
+      const data = await res.json();
+      if (res.status === 201) {
+        // Auto-login after successful registration
+        const loginRes = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password }),
+        });
+        if (loginRes.status === 200) {
+          if (email.trim().toLowerCase() === 'fonyuydiland@gmail.com') {
+            window.location.href = '/dashboard';
+          } else {
+            window.location.href = '/';
+          }
+        } else {
+          alert('Registration succeeded but auto-login failed. Please login manually.');
+        }
+      } else if (res.status === 409) {
+        alert('User already exists.');
+      } else {
+        alert(data.error || 'Registration failed.');
+      }
+    } catch (err) {
+      alert('Server error.');
+    }
+  };
+
   return (
     <div className="flex flex-col md:flex-row w-full min-h-screen items-center justify-center bg-white">
       <div className="flex-1 p-8 flex items-center justify-center">
         <div className="w-full max-w-md">
-          <form className="space-y-4">
+          <form className="space-y-4" onSubmit={handleSubmit}>
             <h1 className="text-3xl font-bold text-red-600 mb-4">Register</h1>
             <div>
               <label className="block mb-1 font-semibold">Name</label>

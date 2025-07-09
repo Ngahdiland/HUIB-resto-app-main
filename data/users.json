@@ -1,0 +1,18 @@
+[
+  {
+    "name": "Ngah Diland",
+    "email": "ngahdiland@gmail.com",
+    "phone": "677828170",
+    "password": "Ngah@50",
+    "address": "molyko",
+    "region": "North-West"
+  },
+  {
+    "name": "admin",
+    "email": "fonyuydiland@gmail.com",
+    "phone": "0000000000",
+    "password": "ElNgah@50",
+    "address": "admin office",
+    "region": "Centre"
+  }
+]
