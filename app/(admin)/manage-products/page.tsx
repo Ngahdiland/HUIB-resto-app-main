@@ -9,110 +9,6 @@ const ManageProducts = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
 
-  // Sample products data
-  const products = [
-    {
-      id: 'PROD-001',
-      name: 'Ndolé',
-      description: 'A rich stew of bitter leaves, peanuts, and meat or fish. Signature dish of the Littoral region.',
-      category: 'Littoral',
-      price: 2500,
-      originalPrice: 2800,
-      stock: 50,
-      status: 'active',
-      rating: 4.9,
-      reviews: 156,
-      image: '/assets/ndole.jpg',
-      tags: ['Traditional', 'Stew', 'Littoral'],
-      ingredients: ['Bitter leaves', 'Peanuts', 'Meat', 'Fish', 'Palm oil'],
-      allergens: ['Peanuts'],
-      preparationTime: '40-50 minutes',
-      calories: 350,
-      createdAt: '2024-01-10',
-      updatedAt: '2024-01-15'
-    },
-    {
-      id: 'PROD-002',
-      name: 'Eru & Water Fufu',
-      description: 'Eru leaves cooked with waterleaf, palm oil, and assorted meats. Popular in Southwest.',
-      category: 'Southwest',
-      price: 2000,
-      originalPrice: 2200,
-      stock: 30,
-      status: 'active',
-      rating: 4.8,
-      reviews: 89,
-      image: '/assets/eru.jpg',
-      tags: ['Traditional', 'Vegetable', 'Southwest'],
-      ingredients: ['Eru', 'Waterleaf', 'Palm oil', 'Meat', 'Fish'],
-      allergens: [],
-      preparationTime: '35-45 minutes',
-      calories: 320,
-      createdAt: '2024-01-08',
-      updatedAt: '2024-01-12'
-    },
-    {
-      id: 'PROD-003',
-      name: 'Achu & Yellow Soup',
-      description: 'Pounded cocoyams with spicy yellow soup, a Northwest delicacy.',
-      category: 'Northwest',
-      price: 2200,
-      originalPrice: 2500,
-      stock: 20,
-      status: 'active',
-      rating: 4.7,
-      reviews: 67,
-      image: '/assets/achu.jpg',
-      tags: ['Traditional', 'Soup', 'Northwest'],
-      ingredients: ['Cocoyams', 'Palm oil', 'Spices', 'Meat'],
-      allergens: [],
-      preparationTime: '30-40 minutes',
-      calories: 300,
-      createdAt: '2024-01-05',
-      updatedAt: '2024-01-14'
-    },
-    {
-      id: 'PROD-004',
-      name: 'Koki Beans',
-      description: 'Steamed black-eyed peas with red palm oil, a Littoral and Southwest favorite.',
-      category: 'Littoral',
-      price: 1800,
-      originalPrice: 2000,
-      stock: 25,
-      status: 'inactive',
-      rating: 4.6,
-      reviews: 43,
-      image: '/assets/koki.jpg',
-      tags: ['Traditional', 'Beans', 'Littoral'],
-      ingredients: ['Black-eyed peas', 'Palm oil', 'Banana leaves'],
-      allergens: [],
-      preparationTime: '25-35 minutes',
-      calories: 280,
-      createdAt: '2024-01-03',
-      updatedAt: '2024-01-10'
-    },
-    {
-      id: 'PROD-005',
-      name: 'Mbongo Tchobi',
-      description: 'Spicy black stew made with native spices and fish, from the Centre region.',
-      category: 'Centre',
-      price: 2300,
-      originalPrice: 2500,
-      stock: 18,
-      status: 'active',
-      rating: 4.8,
-      reviews: 51,
-      image: '/assets/mbongo.jpg',
-      tags: ['Traditional', 'Stew', 'Centre'],
-      ingredients: ['Fish', 'Mbongo spice', 'Palm oil'],
-      allergens: ['Fish'],
-      preparationTime: '40-50 minutes',
-      calories: 340,
-      createdAt: '2024-01-02',
-      updatedAt: '2024-01-09'
-    }
-  ];
-
   const categories = ['Adamawa', 'Centre', 'East', 'Far North', 'Littoral', 'North', 'Northwest', 'West', 'South', 'Southwest'];
 
   const getStatusColor = (status: string) => {
@@ -263,7 +159,7 @@ const ManageProducts = () => {
                 className="absolute top-3 left-3 z-10 rounded border-gray-300 text-red-600 focus:ring-red-500"
               />
               <img
-                src={product.image}
+                src={product.image[0].src}
                 alt={product.name}
                 className="w-full h-48 object-cover"
               />
