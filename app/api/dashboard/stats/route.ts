@@ -63,6 +63,62 @@ export async function GET(req: NextRequest) {
       .sort((a, b) => b.sales - a.sales)
       .slice(0, 5);
 
+    // Calculate top customers by order count and revenue
+    const customerStats: Record<string, { orders: number; revenue: number; avgOrderValue: number }> = {};
+    orders.forEach(order => {
+      const email = order.email;
+      if (!customerStats[email]) {
+        customerStats[email] = { orders: 0, revenue: 0, avgOrderValue: 0 };
+      }
+      customerStats[email].orders += 1;
+      customerStats[email].revenue += order.total || 0;
+    });
+
+    // Calculate average order value for each customer
+    Object.keys(customerStats).forEach(email => {
+      customerStats[email].avgOrderValue = customerStats[email].revenue / customerStats[email].orders;
+    });
+
+    const topCustomers = Object.entries(customerStats)
+      .map(([email, stats]) => ({
+        email,
+        orders: stats.orders,
+        revenue: stats.revenue,
+        avgOrderValue: stats.avgOrderValue
+      }))
+      .sort((a, b) => b.revenue - a.revenue)
+      .slice(0, 5);
+
+    // Calculate delivery locations (regions from users)
+    const userRegions: Record<string, { users: number; orders: number; revenue: number }> = {};
+    users.forEach(user => {
+      const region = user.region || 'Unknown';
+      if (!userRegions[region]) {
+        userRegions[region] = { users: 0, orders: 0, revenue: 0 };
+      }
+      userRegions[region].users += 1;
+    });
+
+    // Add order data to regions
+    orders.forEach(order => {
+      const user = users.find(u => u.email === order.email);
+      const region = user?.region || 'Unknown';
+      if (userRegions[region]) {
+        userRegions[region].orders += 1;
+        userRegions[region].revenue += order.total || 0;
+      }
+    });
+
+    const topDeliveryLocations = Object.entries(userRegions)
+      .map(([region, stats]) => ({
+        region,
+        users: stats.users,
+        orders: stats.orders,
+        revenue: stats.revenue
+      }))
+      .sort((a, b) => b.orders - a.orders)
+      .slice(0, 5);
+
     // Get recent orders (last 5)
     const recentOrders = orders
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
@@ -108,19 +164,104 @@ export async function GET(req: NextRequest) {
       .sort((a, b) => b.orders - a.orders)
       .slice(0, 7);
 
+    // Calculate key insights
+    const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
+    const deliveredOrders = orderStatusCounts.delivered || 0;
+    const deliveryRate = totalOrders > 0 ? (deliveredOrders / totalOrders) * 100 : 0;
+    const pendingOrders = orderStatusCounts.pending || 0;
+    const preparingOrders = orderStatusCounts.preparing || 0;
+    const activeOrders = pendingOrders + preparingOrders;
+
+    // Generate insights
+    const insights = [
+      {
+        title: 'Delivery Success Rate',
+        value: `${deliveryRate.toFixed(1)}%`,
+        description: `${deliveredOrders} out of ${totalOrders} orders delivered successfully`,
+        type: deliveryRate > 80 ? 'positive' : deliveryRate > 60 ? 'neutral' : 'negative'
+      },
+      {
+        title: 'Active Orders',
+        value: activeOrders.toString(),
+        description: `${pendingOrders} pending, ${preparingOrders} preparing`,
+        type: 'info'
+      },
+      {
+        title: 'Average Order Value',
+        value: `${Math.round(avgOrderValue).toLocaleString()} FCFA`,
+        description: 'Revenue per order',
+        type: 'positive'
+      },
+      {
+        title: 'Customer Retention',
+        value: `${topCustomers.length > 0 ? Math.round((topCustomers[0].orders / totalOrders) * 100) : 0}%`,
+        description: 'Top customer contribution',
+        type: 'info'
+      }
+    ];
+
+    // Generate recommendations
+    const recommendations = [];
+    
+    if (deliveryRate < 80) {
+      recommendations.push({
+        title: 'Improve Delivery Speed',
+        description: 'Consider optimizing delivery routes and adding more delivery personnel',
+        priority: 'high'
+      });
+    }
+
+    if (activeOrders > 10) {
+      recommendations.push({
+        title: 'Process Pending Orders',
+        description: `${activeOrders} orders need attention. Focus on order processing.`,
+        priority: 'high'
+      });
+    }
+
+    if (avgOrderValue < 5000) {
+      recommendations.push({
+        title: 'Increase Order Value',
+        description: 'Consider upselling strategies and combo offers',
+        priority: 'medium'
+      });
+    }
+
+    if (topProducts.length > 0 && topProducts[0].sales < 5) {
+      recommendations.push({
+        title: 'Promote Top Products',
+        description: 'Highlight best-selling items to increase sales',
+        priority: 'medium'
+      });
+    }
+
+    if (recommendations.length === 0) {
+      recommendations.push({
+        title: 'Business is Performing Well',
+        description: 'All metrics are within optimal ranges. Keep up the good work!',
+        priority: 'low'
+      });
+    }
+
     return NextResponse.json({
       stats: {
         totalOrders,
         totalRevenue,
         totalRevenueFromPayments,
         totalUsers,
-        avgOrderValue: totalOrders > 0 ? totalRevenue / totalOrders : 0
+        avgOrderValue,
+        deliveryRate,
+        activeOrders
       },
       orderStatusCounts,
       topProducts,
+      topCustomers,
+      topDeliveryLocations,
       recentOrders,
       revenueTrend,
-      peakHoursData
+      peakHoursData,
+      insights,
+      recommendations
     }, { status: 200 });
 
   } catch (error) {

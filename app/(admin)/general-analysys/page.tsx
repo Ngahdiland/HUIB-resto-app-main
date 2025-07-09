@@ -1,6 +1,6 @@
 "use client";
-import React, { useState } from 'react';
-import { FaChartLine, FaChartBar, FaChartPie, FaDownload, FaCalendar, FaFilter, FaArrowUp, FaArrowDown, FaUsers, FaShoppingCart, FaDollarSign, FaStar, FaMapMarkerAlt, FaClock } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { FaChartLine, FaChartBar, FaChartPie, FaDownload, FaCalendar, FaFilter, FaArrowUp, FaArrowDown, FaUsers, FaShoppingCart, FaDollarSign, FaStar, FaMapMarkerAlt, FaClock, FaUserFriends, FaLightbulb, FaCheckCircle, FaExclamationTriangle, FaInfoCircle } from 'react-icons/fa';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -33,71 +33,30 @@ ChartJS.register(
 const GeneralAnalysis = () => {
   const [dateRange, setDateRange] = useState('30');
   const [selectedMetric, setSelectedMetric] = useState('revenue');
+  const [analyticsData, setAnalyticsData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Sample analytics data
-  const analyticsData = {
-    overview: {
-      totalRevenue: 45678.50,
-      totalOrders: 1234,
-      totalCustomers: 2847,
-      averageRating: 4.8,
-      revenueChange: 15.3,
-      ordersChange: 8.2,
-      customersChange: 12.5,
-      ratingChange: 0.2
-    },
-    revenueData: [
-      { date: 'Jan 1', revenue: 1200, orders: 45 },
-      { date: 'Jan 2', revenue: 1350, orders: 52 },
-      { date: 'Jan 3', revenue: 980, orders: 38 },
-      { date: 'Jan 4', revenue: 1650, orders: 62 },
-      { date: 'Jan 5', revenue: 1420, orders: 55 },
-      { date: 'Jan 6', revenue: 1890, orders: 71 },
-      { date: 'Jan 7', revenue: 2100, orders: 78 },
-      { date: 'Jan 8', revenue: 1850, orders: 68 },
-      { date: 'Jan 9', revenue: 2200, orders: 82 },
-      { date: 'Jan 10', revenue: 1950, orders: 73 },
-      { date: 'Jan 11', revenue: 2400, orders: 89 },
-      { date: 'Jan 12', revenue: 2100, orders: 78 },
-      { date: 'Jan 13', revenue: 1800, orders: 67 },
-      { date: 'Jan 14', revenue: 2300, orders: 85 }
-    ],
-    topProducts: [
-      { name: 'Pizza Margherita', sales: 156, revenue: 2028.00, growth: 12.5 },
-      { name: 'Burger Deluxe', sales: 142, revenue: 1418.58, growth: 8.3 },
-      { name: 'Sushi Platter', sales: 98, revenue: 1960.02, growth: 15.7 },
-      { name: 'Pasta Carbonara', sales: 87, revenue: 1042.13, growth: 5.2 },
-      { name: 'Chicken Wings', sales: 76, revenue: 683.24, growth: 9.8 }
-    ],
-    customerSegments: [
-      { segment: 'New Customers', count: 456, percentage: 32 },
-      { segment: 'Returning Customers', count: 678, percentage: 48 },
-      { segment: 'VIP Customers', count: 234, percentage: 16 },
-      { segment: 'Inactive Customers', count: 48, percentage: 4 }
-    ],
-    orderStatus: [
-      { status: 'Delivered', count: 892, percentage: 72 },
-      { status: 'In Transit', count: 156, percentage: 13 },
-      { status: 'Preparing', count: 98, percentage: 8 },
-      { status: 'Pending', count: 88, percentage: 7 }
-    ],
-    peakHours: [
-      { hour: '12:00 PM', orders: 45 },
-      { hour: '1:00 PM', orders: 52 },
-      { hour: '2:00 PM', orders: 38 },
-      { hour: '6:00 PM', orders: 62 },
-      { hour: '7:00 PM', orders: 71 },
-      { hour: '8:00 PM', orders: 78 },
-      { hour: '9:00 PM', orders: 65 }
-    ],
-    topLocations: [
-      { location: 'Downtown', orders: 234, revenue: 3456.78 },
-      { location: 'Westside', orders: 189, revenue: 2789.45 },
-      { location: 'Eastside', orders: 156, revenue: 2345.67 },
-      { location: 'Northside', orders: 123, revenue: 1890.34 },
-      { location: 'Southside', orders: 98, revenue: 1456.78 }
-    ]
-  };
+  // Fetch analytics data
+  useEffect(() => {
+    const fetchAnalyticsData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/dashboard/stats');
+        if (response.ok) {
+          const data = await response.json();
+          setAnalyticsData(data);
+        } else {
+          console.error('Failed to fetch analytics data');
+        }
+      } catch (error) {
+        console.error('Error fetching analytics data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAnalyticsData();
+  }, []);
 
   const getChangeColor = (change: number) => {
     return change >= 0 ? 'text-green-600' : 'text-red-600';
@@ -107,13 +66,75 @@ const GeneralAnalysis = () => {
     return change >= 0 ? <FaArrowUp className="text-green-500" /> : <FaArrowDown className="text-red-500" />;
   };
 
+  const getInsightColor = (type: string) => {
+    switch (type) {
+      case 'positive': return 'text-green-600';
+      case 'negative': return 'text-red-600';
+      case 'neutral': return 'text-yellow-600';
+      default: return 'text-blue-600';
+    }
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high': return 'border-red-500 bg-red-50';
+      case 'medium': return 'border-yellow-500 bg-yellow-50';
+      case 'low': return 'border-green-500 bg-green-50';
+      default: return 'border-gray-500 bg-gray-50';
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'delivered': return 'bg-green-100 text-green-800';
+      case 'preparing': return 'bg-blue-100 text-blue-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'delivering': return 'bg-purple-100 text-purple-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg text-gray-600">Loading analytics data...</div>
+      </div>
+    );
+  }
+
+  if (!analyticsData) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg text-gray-600">Failed to load analytics data</div>
+      </div>
+    );
+  }
+
+  // Calculate insights from real data
+  const stats = analyticsData.stats;
+  const orderStatusCounts = analyticsData.orderStatusCounts || {};
+  const topProducts = analyticsData.topProducts || [];
+  const topCustomers = analyticsData.topCustomers || [];
+  const topDeliveryLocations = analyticsData.topDeliveryLocations || [];
+  const insights = analyticsData.insights || [];
+  const recommendations = analyticsData.recommendations || [];
+  const revenueTrend = analyticsData.revenueTrend || [];
+  const peakHoursData = analyticsData.peakHoursData || [];
+
+  // Calculate order status data for chart
+  const orderStatusData = Object.entries(orderStatusCounts).map(([status, count]: [string, any]) => ({
+    status: status.charAt(0).toUpperCase() + status.slice(1),
+    count,
+    percentage: Math.round((count / stats.totalOrders) * 100)
+  }));
+
   // Chart configurations
   const revenueChartData = {
-    labels: analyticsData.revenueData.map(item => item.date),
+    labels: revenueTrend.map((item: any) => item.date),
     datasets: [
       {
         label: selectedMetric === 'revenue' ? 'Revenue (FCFA)' : 'Orders',
-        data: analyticsData.revenueData.map(item => 
+        data: revenueTrend.map((item: any) => 
           selectedMetric === 'revenue' ? item.revenue : item.orders
         ),
         borderColor: '#DC2626',
@@ -189,22 +210,24 @@ const GeneralAnalysis = () => {
     }
   };
 
-  const customerSegmentsData = {
-    labels: analyticsData.customerSegments.map(item => item.segment),
+  const orderStatusChartData = {
+    labels: orderStatusData.map((item: any) => item.status),
     datasets: [
       {
-        data: analyticsData.customerSegments.map(item => item.percentage),
+        data: orderStatusData.map((item: any) => item.percentage),
         backgroundColor: [
-          '#3B82F6', // Blue
           '#10B981', // Green
-          '#8B5CF6', // Purple
+          '#3B82F6', // Blue
+          '#F59E0B', // Yellow
           '#6B7280', // Gray
+          '#8B5CF6', // Purple
         ],
         borderColor: [
-          '#3B82F6',
           '#10B981',
-          '#8B5CF6',
+          '#3B82F6',
+          '#F59E0B',
           '#6B7280',
+          '#8B5CF6',
         ],
         borderWidth: 2,
         hoverOffset: 4,
@@ -212,7 +235,7 @@ const GeneralAnalysis = () => {
     ]
   };
 
-  const customerSegmentsOptions = {
+  const orderStatusChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -235,20 +258,20 @@ const GeneralAnalysis = () => {
         cornerRadius: 8,
         callbacks: {
           label: function(context: any) {
-            const segment = analyticsData.customerSegments[context.dataIndex];
-            return `${segment.segment}: ${segment.count} customers (${segment.percentage}%)`;
+            const status = orderStatusData[context.dataIndex];
+            return `${status.status}: ${status.count} orders (${status.percentage}%)`;
           }
         }
       }
     }
   };
 
-  const peakHoursData = {
-    labels: analyticsData.peakHours.map(item => item.hour),
+  const peakHoursChartData = {
+    labels: peakHoursData.map((item: any) => item.hour),
     datasets: [
       {
         label: 'Orders',
-        data: analyticsData.peakHours.map(item => item.orders),
+        data: peakHoursData.map((item: any) => item.orders),
         backgroundColor: 'rgba(220, 38, 38, 0.8)',
         borderColor: '#DC2626',
         borderWidth: 2,
@@ -258,7 +281,7 @@ const GeneralAnalysis = () => {
     ]
   };
 
-  const peakHoursOptions = {
+  const peakHoursChartOptions = {
     responsive: true,
     maintainAspectRatio: false,
     plugins: {
@@ -306,6 +329,56 @@ const GeneralAnalysis = () => {
     }
   };
 
+  // Generate CSV report
+  function handleGenerateReport() {
+    let csv = '';
+    // Revenue/Orders Chart Data
+    csv += `General Analysis Report (${dateRange} days)\n`;
+    csv += 'Date,Revenue,Orders\n';
+    revenueTrend.forEach((row: any) => {
+      csv += `${row.date},${row.revenue},${row.orders}\n`;
+    });
+    csv += '\n';
+    // Top Products
+    csv += 'Top Products\n';
+    csv += 'Product,Sales,Revenue\n';
+    topProducts.forEach((p: any) => {
+      csv += `${p.name},${p.sales},${p.revenue}\n`;
+    });
+    csv += '\n';
+    // Top Customers
+    csv += 'Top Customers\n';
+    csv += 'Email,Orders,Revenue,AvgOrderValue\n';
+    topCustomers.forEach((c: any) => {
+      csv += `${c.email},${c.orders},${c.revenue},${c.avgOrderValue}\n`;
+    });
+    csv += '\n';
+    // Top Delivery Locations
+    csv += 'Top Delivery Locations\n';
+    csv += 'Region,Users,Orders,Revenue\n';
+    topDeliveryLocations.forEach((l: any) => {
+      csv += `${l.region},${l.users},${l.orders},${l.revenue}\n`;
+    });
+    csv += '\n';
+    // Order Status
+    csv += 'Order Status Distribution\n';
+    csv += 'Status,Count,Percentage\n';
+    orderStatusData.forEach((s: any) => {
+      csv += `${s.status},${s.count},${s.percentage}%\n`;
+    });
+    csv += '\n';
+    // Download
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `general_analysis_report_${dateRange}days_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -325,7 +398,7 @@ const GeneralAnalysis = () => {
             <option value="90">Last 90 days</option>
             <option value="365">Last year</option>
           </select>
-          <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2">
+          <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2" onClick={handleGenerateReport}>
             <FaDownload />
             Export Report
           </button>
@@ -338,12 +411,10 @@ const GeneralAnalysis = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Revenue</p>
-              <p className="text-2xl font-bold text-gray-800">{analyticsData.overview.totalRevenue.toLocaleString()} FCFA</p>
+              <p className="text-2xl font-bold text-gray-800">{stats.totalRevenue.toLocaleString()} FCFA</p>
               <div className="flex items-center mt-2">
-                {getChangeIcon(analyticsData.overview.revenueChange)}
-                <span className={`text-sm ${getChangeColor(analyticsData.overview.revenueChange)}`}>
-                  {analyticsData.overview.revenueChange}%
-                </span>
+                <FaArrowUp className="text-green-500 text-sm mr-1" />
+                <span className="text-sm text-green-600">+0%</span>
                 <span className="text-sm text-gray-500 ml-1">from last period</span>
               </div>
             </div>
@@ -357,12 +428,10 @@ const GeneralAnalysis = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-medium text-gray-600">Total Orders</p>
-              <p className="text-2xl font-bold text-gray-800">{analyticsData.overview.totalOrders.toLocaleString()}</p>
+              <p className="text-2xl font-bold text-gray-800">{stats.totalOrders.toLocaleString()}</p>
               <div className="flex items-center mt-2">
-                {getChangeIcon(analyticsData.overview.ordersChange)}
-                <span className={`text-sm ${getChangeColor(analyticsData.overview.ordersChange)}`}>
-                  {analyticsData.overview.ordersChange}%
-                </span>
+                <FaArrowUp className="text-green-500 text-sm mr-1" />
+                <span className="text-sm text-green-600">+0%</span>
                 <span className="text-sm text-gray-500 ml-1">from last period</span>
               </div>
             </div>
@@ -375,13 +444,11 @@ const GeneralAnalysis = () => {
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Total Customers</p>
-              <p className="text-2xl font-bold text-gray-800">{analyticsData.overview.totalCustomers.toLocaleString()}</p>
+              <p className="text-sm font-medium text-gray-600">Total Users</p>
+              <p className="text-2xl font-bold text-gray-800">{stats.totalUsers.toLocaleString()}</p>
               <div className="flex items-center mt-2">
-                {getChangeIcon(analyticsData.overview.customersChange)}
-                <span className={`text-sm ${getChangeColor(analyticsData.overview.customersChange)}`}>
-                  {analyticsData.overview.customersChange}%
-                </span>
+                <FaArrowUp className="text-green-500 text-sm mr-1" />
+                <span className="text-sm text-green-600">+0%</span>
                 <span className="text-sm text-gray-500 ml-1">from last period</span>
               </div>
             </div>
@@ -394,21 +461,36 @@ const GeneralAnalysis = () => {
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm font-medium text-gray-600">Average Rating</p>
-              <p className="text-2xl font-bold text-gray-800">{analyticsData.overview.averageRating}</p>
+              <p className="text-sm font-medium text-gray-600">Avg Order Value</p>
+              <p className="text-2xl font-bold text-gray-800">{Math.round(stats.avgOrderValue).toLocaleString()} FCFA</p>
               <div className="flex items-center mt-2">
-                {getChangeIcon(analyticsData.overview.ratingChange)}
-                <span className={`text-sm ${getChangeColor(analyticsData.overview.ratingChange)}`}>
-                  {analyticsData.overview.ratingChange}
-                </span>
+                <FaArrowUp className="text-green-500 text-sm mr-1" />
+                <span className="text-sm text-green-600">+0%</span>
                 <span className="text-sm text-gray-500 ml-1">from last period</span>
               </div>
             </div>
             <div className="p-3 rounded-full bg-yellow-100 text-yellow-600">
-              <FaStar className="text-2xl" />
+              <FaDollarSign className="text-2xl" />
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Key Insights */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {insights.map((insight: any, index: number) => (
+          <div key={index} className="bg-white rounded-lg shadow-md p-6">
+            <div className="flex items-center justify-between mb-4">
+              <FaLightbulb className={`text-2xl ${getInsightColor(insight.type)}`} />
+              <span className={`text-xs px-2 py-1 rounded-full ${getInsightColor(insight.type)} bg-opacity-10`}>
+                {insight.type}
+              </span>
+            </div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-2">{insight.title}</h3>
+            <p className="text-2xl font-bold text-gray-800 mb-2">{insight.value}</p>
+            <p className="text-sm text-gray-600">{insight.description}</p>
+          </div>
+        ))}
       </div>
 
       {/* Charts Section */}
@@ -441,11 +523,11 @@ const GeneralAnalysis = () => {
           </div>
         </div>
 
-        {/* Customer Segments */}
+        {/* Order Status Chart */}
         <div className="bg-white rounded-lg shadow-md p-6">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Customer Segments</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Order Status Distribution</h3>
           <div className="h-64">
-            <Doughnut data={customerSegmentsData} options={customerSegmentsOptions} />
+            <Doughnut data={orderStatusChartData} options={orderStatusChartOptions} />
           </div>
         </div>
       </div>
@@ -454,7 +536,7 @@ const GeneralAnalysis = () => {
       <div className="bg-white rounded-lg shadow-md p-6">
         <h3 className="text-lg font-semibold text-gray-800 mb-4">Peak Order Hours</h3>
         <div className="h-64">
-          <Bar data={peakHoursData} options={peakHoursOptions} />
+          <Bar data={peakHoursChartData} options={peakHoursChartOptions} />
         </div>
       </div>
 
@@ -464,7 +546,7 @@ const GeneralAnalysis = () => {
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Top Performing Products</h3>
           <div className="space-y-4">
-            {analyticsData.topProducts.map((product, index) => (
+            {topProducts.map((product: any, index: number) => (
               <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center space-x-3">
                   <div className="w-8 h-8 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-sm font-semibold">
@@ -477,9 +559,6 @@ const GeneralAnalysis = () => {
                 </div>
                 <div className="text-right">
                   <p className="font-semibold text-gray-800">{product.revenue.toFixed(0)} FCFA</p>
-                  <p className={`text-xs ${getChangeColor(product.growth)}`}>
-                    +{product.growth}%
-                  </p>
                 </div>
               </div>
             ))}
@@ -490,12 +569,12 @@ const GeneralAnalysis = () => {
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Order Status Distribution</h3>
           <div className="space-y-4">
-            {analyticsData.orderStatus.map((status, index) => (
+            {orderStatusData.map((status: any, index: number) => (
               <div key={index} className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <div className={`w-4 h-4 rounded-full ${
                     status.status === 'Delivered' ? 'bg-green-500' :
-                    status.status === 'In Transit' ? 'bg-blue-500' :
+                    status.status === 'Delivering' ? 'bg-blue-500' :
                     status.status === 'Preparing' ? 'bg-yellow-500' : 'bg-gray-500'
                   }`}></div>
                   <span className="text-sm font-medium text-gray-700">{status.status}</span>
@@ -513,7 +592,7 @@ const GeneralAnalysis = () => {
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Peak Order Hours</h3>
           <div className="space-y-3">
-            {analyticsData.peakHours.map((hour, index) => (
+            {peakHoursData.map((hour: any, index: number) => (
               <div key={index} className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <FaClock className="text-gray-400" />
@@ -523,10 +602,67 @@ const GeneralAnalysis = () => {
                   <div className="w-20 bg-gray-200 rounded-full h-2">
                     <div 
                       className="bg-red-600 h-2 rounded-full" 
-                      style={{ width: `${(hour.orders / 78) * 100}%` }}
+                      style={{ width: `${(hour.orders / Math.max(...peakHoursData.map((h: any) => h.orders))) * 100}%` }}
                     ></div>
                   </div>
                   <span className="text-sm font-semibold text-gray-800">{hour.orders}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Top Customers and Delivery Locations */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Top Customers */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <FaUserFriends className="text-red-600" />
+            <h3 className="text-lg font-semibold text-gray-800">Top Customers</h3>
+          </div>
+          <div className="space-y-4">
+            {topCustomers.map((customer: any, index: number) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center">
+                  <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold mr-3">
+                    {index + 1}
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-800">{customer.email}</p>
+                    <p className="text-sm text-gray-600">{customer.orders} orders</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold text-gray-800">{customer.revenue.toFixed(0)} FCFA</p>
+                  <p className="text-xs text-gray-500">Avg: {customer.avgOrderValue.toFixed(0)} FCFA</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Top Delivery Locations */}
+        <div className="bg-white rounded-lg shadow-md p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <FaMapMarkerAlt className="text-red-600" />
+            <h3 className="text-lg font-semibold text-gray-800">Top Delivery Locations</h3>
+          </div>
+          <div className="space-y-4">
+            {topDeliveryLocations.map((location: any, index: number) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center">
+                  <div className="w-8 h-8 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-sm font-semibold mr-3">
+                    {index + 1}
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-800">{location.region}</p>
+                    <p className="text-sm text-gray-600">{location.users} users</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="font-semibold text-gray-800">{location.orders} orders</p>
+                  <p className="text-xs text-gray-500">{location.revenue.toFixed(0)} FCFA</p>
                 </div>
               </div>
             ))}
@@ -545,6 +681,9 @@ const GeneralAnalysis = () => {
                   Location
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Users
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Orders
                 </th>
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -553,19 +692,19 @@ const GeneralAnalysis = () => {
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Avg Order Value
                 </th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                  Growth
-                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {analyticsData.topLocations.map((location, index) => (
+              {topDeliveryLocations.map((location: any, index: number) => (
                 <tr key={index} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="flex items-center">
                       <FaMapMarkerAlt className="text-red-500 mr-2" />
-                      <span className="text-sm font-medium text-gray-900">{location.location}</span>
+                      <span className="text-sm font-medium text-gray-900">{location.region}</span>
                     </div>
+                  </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    {location.users}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {location.orders}
@@ -576,11 +715,6 @@ const GeneralAnalysis = () => {
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                     {(location.revenue / location.orders).toFixed(0)} FCFA
                   </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className="inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
-                      +{Math.floor(Math.random() * 20) + 5}%
-                    </span>
-                  </td>
                 </tr>
               ))}
             </tbody>
@@ -588,61 +722,47 @@ const GeneralAnalysis = () => {
         </div>
       </div>
 
-      {/* Insights */}
+      {/* Insights and Recommendations */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Key Insights</h3>
           <div className="space-y-4">
-            <div className="flex items-start space-x-3">
-              <div className="w-2 h-2 bg-green-500 rounded-full mt-2"></div>
-              <div>
-                <p className="text-sm font-medium text-gray-800">Revenue Growth</p>
-                <p className="text-xs text-gray-600">Revenue increased by 15.3% compared to last period</p>
+            {insights.map((insight: any, index: number) => (
+              <div key={index} className="flex items-start space-x-3">
+                <div className={`w-2 h-2 rounded-full mt-2 ${
+                  insight.type === 'positive' ? 'bg-green-500' :
+                  insight.type === 'negative' ? 'bg-red-500' :
+                  insight.type === 'neutral' ? 'bg-yellow-500' : 'bg-blue-500'
+                }`}></div>
+                <div>
+                  <p className="text-sm font-medium text-gray-800">{insight.title}</p>
+                  <p className="text-xs text-gray-600">{insight.description}</p>
+                </div>
               </div>
-            </div>
-            <div className="flex items-start space-x-3">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mt-2"></div>
-              <div>
-                <p className="text-sm font-medium text-gray-800">Customer Acquisition</p>
-                <p className="text-xs text-gray-600">New customer signups increased by 12.5%</p>
-              </div>
-            </div>
-            <div className="flex items-start space-x-3">
-              <div className="w-2 h-2 bg-yellow-500 rounded-full mt-2"></div>
-              <div>
-                <p className="text-sm font-medium text-gray-800">Peak Hours</p>
-                <p className="text-xs text-gray-600">Most orders are placed between 6-8 PM</p>
-              </div>
-            </div>
-            <div className="flex items-start space-x-3">
-              <div className="w-2 h-2 bg-purple-500 rounded-full mt-2"></div>
-              <div>
-                <p className="text-sm font-medium text-gray-800">Top Product</p>
-                <p className="text-xs text-gray-600">Pizza Margherita is the best-selling item</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Recommendations</h3>
           <div className="space-y-4">
-            <div className="p-3 bg-blue-50 border-l-4 border-blue-400">
-              <p className="text-sm font-medium text-blue-800">Increase Marketing</p>
-              <p className="text-xs text-blue-600">Consider increasing marketing spend during peak hours</p>
-            </div>
-            <div className="p-3 bg-green-50 border-l-4 border-green-400">
-              <p className="text-sm font-medium text-green-800">Inventory Management</p>
-              <p className="text-xs text-green-600">Stock up on popular items like Pizza Margherita</p>
-            </div>
-            <div className="p-3 bg-yellow-50 border-l-4 border-yellow-400">
-              <p className="text-sm font-medium text-yellow-800">Delivery Optimization</p>
-              <p className="text-xs text-yellow-600">Consider adding more delivery partners for downtown area</p>
-            </div>
-            <div className="p-3 bg-purple-50 border-l-4 border-purple-400">
-              <p className="text-sm font-medium text-purple-800">Customer Retention</p>
-              <p className="text-xs text-purple-600">Focus on retaining returning customers (48% of total)</p>
-            </div>
+            {recommendations.map((rec: any, index: number) => (
+              <div key={index} className={`p-3 rounded-lg border-l-4 ${getPriorityColor(rec.priority)}`}>
+                <div className="flex items-start gap-3">
+                  {rec.priority === 'high' ? (
+                    <FaExclamationTriangle className="text-red-500 mt-1" />
+                  ) : rec.priority === 'medium' ? (
+                    <FaInfoCircle className="text-yellow-500 mt-1" />
+                  ) : (
+                    <FaCheckCircle className="text-green-500 mt-1" />
+                  )}
+                  <div>
+                    <h4 className="font-semibold text-gray-800 mb-1">{rec.title}</h4>
+                    <p className="text-sm text-gray-600">{rec.description}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
