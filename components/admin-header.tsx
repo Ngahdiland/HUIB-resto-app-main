@@ -5,9 +5,10 @@ import { FaUserCircle } from 'react-icons/fa';
 const AdminHeader = () => {
   const [showMenu, setShowMenu] = useState(false);
   const [focusedIndex, setFocusedIndex] = useState(-1);
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
   const menuItems = [
-    { label: 'View Account', href: '/admin/profile', type: 'link' },
-    { label: 'Logout', onClick: () => {/* handle logout */}, type: 'button' },
+    { label: 'View Profile', href: '/admin-profile', type: 'link' },
+    { label: 'Logout', onClick: () => setShowLogoutModal(true), type: 'button' },
   ];
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -48,11 +49,21 @@ const AdminHeader = () => {
       <div
         className="relative"
         tabIndex={0}
-        onMouseEnter={() => setShowMenu(true)}
-        onMouseLeave={() => { setShowMenu(false); setFocusedIndex(-1); }}
+        onBlur={e => {
+          if (!e.currentTarget.contains(e.relatedTarget)) {
+            setShowMenu(false);
+            setFocusedIndex(-1);
+          }
+        }}
         onKeyDown={handleKeyDown}
       >
-        <button className="flex items-center gap-2 px-3 py-1 text-red-600 hover:bg-red-100 rounded transition-colors">
+        <button
+          className="flex items-center gap-2 px-3 py-1 text-red-600 hover:bg-red-100 rounded transition-colors"
+          type="button"
+          onClick={() => setShowMenu((prev) => !prev)}
+          aria-haspopup="true"
+          aria-expanded={showMenu}
+        >
           <FaUserCircle size={24} />
           <span className="hidden md:inline">Profile</span>
         </button>
@@ -81,6 +92,32 @@ const AdminHeader = () => {
                 </button>
               )
             )}
+          </div>
+        )}
+        {/* Logout Confirmation Modal */}
+        {showLogoutModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-xs">
+              <h2 className="text-lg font-bold mb-4 text-gray-800">Confirm Logout</h2>
+              <p className="mb-6 text-gray-600">Are you sure you want to logout?</p>
+              <div className="flex justify-end gap-3">
+                <button
+                  className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  onClick={() => setShowLogoutModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700"
+                  onClick={() => {
+                    localStorage.clear();
+                    window.location.href = '/login';
+                  }}
+                >
+                  Logout
+                </button>
+              </div>
+            </div>
           </div>
         )}
       </div>

@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { FaStar, FaPhone, FaEnvelope, FaMapMarkerAlt, FaArrowRight, FaCheck } from 'react-icons/fa';
 import ClientFooter from '@/components/client-footer';
+import { useCart } from '../../context/CartContext';
 
 const Home = () => {
   const [email, setEmail] = useState('');
@@ -14,38 +15,55 @@ const Home = () => {
     // TODO: Implement newsletter subscription
   };
 
-  const topFoods = [
+  // Top Traditional Cameroonian Dishes
+  const topTraditionalFoods = [
     {
       id: 1,
-      name: 'Pizza Margherita',
-      price: 12.99,
-      image: '/assets/p_img1.png',
-      rating: 4.8,
-      description: 'Fresh mozzarella, tomato sauce, and basil'
+      name: 'Ndolé',
+      price: 2500,
+      image: '/assets/ndole.jpg',
+      rating: 4.9,
+      description: 'A rich stew of bitter leaves, peanuts, and meat or fish. Signature dish of the Littoral region.'
     },
     {
       id: 2,
-      name: 'Burger Deluxe',
-      price: 9.99,
-      image: '/assets/p_img2.png',
-      rating: 4.6,
-      description: 'Juicy beef patty with fresh vegetables'
+      name: 'Eru & Water Fufu',
+      price: 2000,
+      image: '/assets/eru.jpg',
+      rating: 4.8,
+      description: 'Eru leaves cooked with waterleaf, palm oil, and assorted meats. Popular in Southwest.'
     },
     {
       id: 3,
-      name: 'Sushi Platter',
-      price: 19.99,
-      image: '/assets/p_img3.png',
-      rating: 4.9,
-      description: 'Fresh salmon, tuna, and avocado rolls'
+      name: 'Achu & Yellow Soup',
+      price: 2200,
+      image: '/assets/achu.jpg',
+      rating: 4.7,
+      description: 'Pounded cocoyams with spicy yellow soup, a Northwest delicacy.'
     },
     {
       id: 4,
-      name: 'Pasta Carbonara',
-      price: 11.99,
-      image: '/assets/p_img4.png',
-      rating: 4.7,
-      description: 'Creamy pasta with bacon and parmesan'
+      name: 'Koki Beans',
+      price: 1800,
+      image: '/assets/koki.jpg',
+      rating: 4.6,
+      description: 'Steamed black-eyed peas with red palm oil, a Littoral and Southwest favorite.'
+    },
+    {
+      id: 5,
+      name: 'Mbongo Tchobi',
+      price: 2300,
+      image: '/assets/mbongo.jpg',
+      rating: 4.8,
+      description: 'Spicy black stew made with native spices and fish, from the Centre region.'
+    },
+    {
+      id: 6,
+      name: 'Sanga',
+      price: 1700,
+      image: '/assets/sanga.jpg',
+      rating: 4.5,
+      description: 'Mixture of maize, cassava leaves, and palm oil, popular in the South.'
     }
   ];
 
@@ -94,6 +112,8 @@ const Home = () => {
       description: 'Get your food delivered to your door'
     }
   ];
+
+  const { addToCart } = useCart();
 
   return (
     <div className="min-h-screen">
@@ -154,15 +174,15 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Top Foods of the Week */}
+      {/* Top Traditional Products */}
       <section className="py-12 md:py-16">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-8 md:mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Top Foods of the Week</h2>
-            <p className="text-lg md:text-xl text-gray-600">Most popular dishes this week</p>
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Top Traditional Products</h2>
+            <p className="text-lg md:text-xl text-gray-600">Discover the most loved traditional Cameroonian dishes</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-            {topFoods.map((food) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
+            {topTraditionalFoods.slice(0, 4).map((food) => (
               <div key={food.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
                 <img 
                   src={food.image} 
@@ -180,7 +200,16 @@ const Home = () => {
                   <p className="text-xs md:text-sm text-gray-600 mb-3">{food.description}</p>
                   <div className="flex justify-between items-center">
                     <span className="text-lg md:text-xl font-bold text-red-600">{food.price} FCFA</span>
-                    <button className="bg-red-600 text-white px-3 md:px-4 py-1 md:py-2 rounded hover:bg-red-700 transition-colors text-sm">
+                    <button 
+                      className="bg-red-600 text-white px-3 md:px-4 py-1 md:py-2 rounded hover:bg-red-700 transition-colors text-sm"
+                      onClick={() => addToCart({
+                        id: food.id.toString(),
+                        name: food.name,
+                        price: food.price,
+                        image: food.image,
+                        description: food.description
+                      })}
+                    >
                       Add to Cart
                     </button>
                   </div>
