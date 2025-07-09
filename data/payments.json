@@ -5,7 +5,7 @@
     "userName": "ruth",
     "paymentMethod": "mtn",
     "phoneNumber": "+237691414116",
-    "status": "pending",
+    "status": "completed",
     "date": "2025-07-09T14:38:41.344Z",
     "action": "order",
     "email": "Ruth@gmail.com"
@@ -16,7 +16,7 @@
     "userName": "Ngah Diland",
     "paymentMethod": "orange",
     "phoneNumber": "+237691414115",
-    "status": "pending",
+    "status": "completed",
     "date": "2025-07-09T20:53:59.685Z",
     "action": "order",
     "email": "fonyuydiland@gmail.com"

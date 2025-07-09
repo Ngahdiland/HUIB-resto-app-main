@@ -38,6 +38,7 @@ const Payments = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [paymentsState, setPaymentsState] = useState<Payment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const paymentsPerPage = 6;
 
   // Fetch payments data on component mount
@@ -403,11 +404,41 @@ const Payments = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       {payment.status === 'pending' ? (
                         <select
-                          className={`px-2 py-1 rounded text-xs font-semibold ${getStatusColor(payment.status)}`}
+                          className={`px-2 py-1 rounded text-xs font-semibold ${getStatusColor(payment.status)} ${updatingStatus === (payment.paymentId || payment.id) ? 'opacity-50' : ''}`}
                           value={payment.status}
-                          onChange={e => {
+                          disabled={updatingStatus === (payment.paymentId || payment.id)}
+                          onChange={async (e) => {
                             const newStatus = e.target.value;
-                            setPaymentsState(prev => prev.map(p => (p.paymentId || p.id) === (payment.paymentId || payment.id) ? { ...p, status: newStatus } : p));
+                            const paymentId = payment.paymentId || payment.id;
+                            
+                            if (!paymentId) {
+                              console.error('Payment ID not found');
+                              return;
+                            }
+                            
+                            setUpdatingStatus(paymentId);
+                            
+                            try {
+                              const response = await fetch('/api/payments/update-status', {
+                                method: 'PUT',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ paymentId, newStatus }),
+                              });
+                              
+                              if (response.ok) {
+                                // Update local state
+                                setPaymentsState(prev => prev.map(p => 
+                                  (p.paymentId || p.id) === paymentId ? { ...p, status: newStatus } : p
+                                ));
+                              } else {
+                                const errorData = await response.json();
+                                console.error('Failed to update status:', errorData.error);
+                              }
+                            } catch (error) {
+                              console.error('Error updating payment status:', error);
+                            } finally {
+                              setUpdatingStatus(null);
+                            }
                           }}
                         >
                           <option value="completed">Completed</option>
