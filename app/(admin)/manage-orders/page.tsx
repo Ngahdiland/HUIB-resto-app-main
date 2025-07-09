@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaSearch, FaFilter, FaEye, FaEdit, FaTrash, FaDownload, FaPrint } from 'react-icons/fa';
 
 // Sample orders data
@@ -90,12 +90,20 @@ const ManageOrders = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
-  const [ordersState, setOrdersState] = useState(orders);
+  const [ordersState, setOrdersState] = useState([]);
   const [viewOrder, setViewOrder] = useState(null);
   const [editOrder, setEditOrder] = useState(null);
   const [deleteOrder, setDeleteOrder] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const ordersPerPage = 6;
+
+  useEffect(() => {
+    fetch('/api/orders/all')
+      .then(res => res.json())
+      .then(data => {
+        if (data.orders) setOrdersState(data.orders);
+      });
+  }, []);
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -117,10 +125,26 @@ const ManageOrders = () => {
     }
   };
 
+  // Add this function to update order status
+  const handleStatusUpdate = async (orderId, newStatus) => {
+    const res = await fetch('/api/orders/update-status', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: orderId, status: newStatus }),
+    });
+    const data = await res.json();
+    if (res.status === 200 && data.order) {
+      setOrdersState(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+    } else {
+      alert(data.error || 'Failed to update order status.');
+    }
+  };
+
   const filteredOrders = ordersState.filter(order => {
-    const matchesSearch = order.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         order.customer.email.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = order.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (order.customer?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || '') ||
+      (order.customer?.email?.toLowerCase().includes(searchTerm.toLowerCase()) || '') ||
+      (order.email?.toLowerCase().includes(searchTerm.toLowerCase()) || '');
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     return matchesSearch && matchesStatus;
   });
@@ -335,9 +359,9 @@ const ManageOrders = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap font-bold text-gray-800">{order.id}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-gray-900">{order.customer.name}</div>
-                  <div className="text-xs text-gray-500">{order.customer.email}</div>
-                  <div className="text-xs text-gray-400">{order.customer.phone}</div>
+                  <div className="text-gray-900">{order.customer?.name || order.email || 'N/A'}</div>
+                  <div className="text-xs text-gray-500">{order.customer?.email || order.email || 'N/A'}</div>
+                  <div className="text-xs text-gray-400">{order.customer?.phone || 'N/A'}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   {order.items.map((item, idx) => (
@@ -348,15 +372,27 @@ const ManageOrders = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap font-bold text-red-600">{order.total} FCFA</td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                    {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                  </span>
+                  {['pending','preparing','delivering'].includes(order.status) ? (
+                    <select
+                      value={order.status}
+                      onChange={e => handleStatusUpdate(order.id, e.target.value)}
+                      className="border rounded px-2 py-1"
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="preparing">Preparing</option>
+                      <option value="delivering">Delivering</option>
+                    </select>
+                  ) : (
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
+                      {order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : 'N/A'}
+                    </span>
+                  )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPaymentStatusColor(order.paymentStatus)}`}>
-                    {order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1)}
+                    {order.paymentStatus ? order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1) : 'N/A'}
                   </span>
-                  <div className="text-xs text-gray-400">{order.paymentMethod.replace('_', ' ')}</div>
+                  <div className="text-xs text-gray-400">{order.paymentMethod ? order.paymentMethod.replace('_', ' ') : 'N/A'}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">{order.orderDate}</td>
                 <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">{order.deliveryDate || '-'}</td>
@@ -418,7 +454,7 @@ const ManageOrders = () => {
           <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg">
             <h2 className="text-xl font-bold mb-4">Order Details</h2>
             <div className="mb-2"><b>ID:</b> {viewOrder.id}</div>
-            <div className="mb-2"><b>Customer:</b> {viewOrder.customer.name} ({viewOrder.customer.email}, {viewOrder.customer.phone})</div>
+            <div className="mb-2"><b>Customer:</b> {viewOrder.customer?.name || viewOrder.email || 'N/A'} ({viewOrder.customer?.email || viewOrder.email || 'N/A'}, {viewOrder.customer?.phone || 'N/A'})</div>
             <div className="mb-2"><b>Address:</b> {viewOrder.deliveryAddress}</div>
             <div className="mb-2"><b>Items:</b>
               <ul className="list-disc ml-6">
