@@ -1,11 +1,16 @@
 "use client";
 import React, { useState } from 'react';
 import Button from '@/components/Button';
+import { FiEye, FiEyeOff } from 'react-icons/fi';
 
 export default function RegisterPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [address, setAddress] = useState('');
+  const [region, setRegion] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   return (
     <div className="flex flex-col md:flex-row w-full min-h-screen items-center justify-center bg-white">
@@ -22,8 +27,50 @@ export default function RegisterPage() {
               <input type="email" className="w-full border border-red-300 rounded px-4 py-2" value={email} onChange={e => setEmail(e.target.value)} required />
             </div>
             <div>
+              <label className="block mb-1 font-semibold">Phone</label>
+              <input type="text" className="w-full border border-red-300 rounded px-4 py-2" value={phone} onChange={e => setPhone(e.target.value)} required />
+            </div>
+            <div>
+              <label className="block mb-1 font-semibold">Address</label>
+              <input type="text" className="w-full border border-red-300 rounded px-4 py-2" value={address} onChange={e => setAddress(e.target.value)} required />
+            </div>
+            <div>
+              <label className="block mb-1 font-semibold">Region</label>
+              <select className="w-full border border-red-300 rounded px-4 py-2" value={region} onChange={e => setRegion(e.target.value)} required>
+                <option value="">Select a region</option>
+                <option value="Adamawa">Adamawa</option>
+                <option value="Centre">Centre</option>
+                <option value="East">East</option>
+                <option value="Far North">Far North</option>
+                <option value="Littoral">Littoral</option>
+                <option value="North">North</option>
+                <option value="North-West">North-West</option>
+                <option value="West">West</option>
+                <option value="South">South</option>
+                <option value="South-West">South-West</option>
+                <option value="Visitor">Visitor</option>
+              </select>
+            </div>
+            <div>
               <label className="block mb-1 font-semibold">Password</label>
-              <input type="password" className="w-full border border-red-300 rounded px-4 py-2" value={password} onChange={e => setPassword(e.target.value)} required />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  className="w-full border border-red-300 rounded px-4 py-2 pr-10"
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  required
+                />
+                <button
+                  type="button"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 focus:outline-none"
+                  onClick={() => setShowPassword(!showPassword)}
+                  tabIndex={-1}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+                </button>
+              </div>
             </div>
             <Button type="submit">Register</Button>
             <div className="mt-4 text-center">
@@ -34,9 +81,9 @@ export default function RegisterPage() {
         </div>
       </div>
       <div className="hidden md:flex flex-col justify-center items-center bg-red-50 p-8 w-1/2 h-screen rounded-r">
-        <h2 className="text-4xl font-bold text-red-600 mb-4">HuibApp</h2>
+        <h2 className="text-4xl font-bold text-red-600 mb-4">CCF Resto</h2>
         <p className="text-gray-700 text-center">
-          Welcome to HuibApp!<br />
+          Welcome to CCF Resto!<br />
           Enjoy fast, fresh, and delicious food delivered to your door. <br />
           - Browse a wide menu<br />
           - Easy, secure checkout<br />
