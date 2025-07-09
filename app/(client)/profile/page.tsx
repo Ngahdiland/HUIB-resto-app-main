@@ -1,6 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { FaEdit, FaSave, FaTimes, FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaClock, FaCheck, FaTruck, FaComment, FaStar } from 'react-icons/fa';
+import SessionManager from '@/utils/sessionManager';
 
 interface User {
   id?: string;
@@ -55,19 +56,19 @@ const Profile = () => {
   const [feedbackMessage, setFeedbackMessage] = useState('');
 
   useEffect(() => {
-    // Load user from localStorage
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      const parsedUser = JSON.parse(storedUser);
-      setUser(parsedUser);
+    // Load user from session manager
+    const sessionManager = SessionManager.getInstance();
+    const currentUser = sessionManager.getCurrentUser();
+    if (currentUser) {
+      setUser(currentUser);
       // Fetch orders for this user
-      fetch(`/api/orders/user?email=${encodeURIComponent(parsedUser.email)}`)
+      fetch(`/api/orders/user?email=${encodeURIComponent(currentUser.email)}`)
         .then(res => res.json())
         .then(data => {
           if (data.orders) setOrders(data.orders);
         });
       // Fetch payments for this user
-      fetch(`/api/payments/user?email=${encodeURIComponent(parsedUser.email)}`)
+      fetch(`/api/payments/user?email=${encodeURIComponent(currentUser.email)}`)
         .then(res => res.json())
         .then(data => {
           if (data.payments) setTransactions(data.payments);
@@ -87,7 +88,9 @@ const Profile = () => {
       const data = await res.json();
       if (res.status === 200 && data.user) {
         setUser(data.user);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        // Update session with new user data
+        const sessionManager = SessionManager.getInstance();
+        sessionManager.createSession(data.user);
         setIsEditing(false);
         alert('Profile updated!');
       } else {
@@ -101,9 +104,10 @@ const Profile = () => {
   const handleCancelEdit = () => {
     setIsEditing(false);
     // Reset user data to original
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    const sessionManager = SessionManager.getInstance();
+    const currentUser = sessionManager.getCurrentUser();
+    if (currentUser) {
+      setUser(currentUser);
     }
   };
 

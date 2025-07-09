@@ -1,5 +1,6 @@
 "use client";
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import SessionManager from '@/utils/sessionManager';
 
 export interface CartProduct {
   id: string;
@@ -28,26 +29,16 @@ const CART_STORAGE_KEY = 'huib_cart';
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<{ [id: string]: CartItem }>({});
-  const [userEmail, setUserEmail] = useState<string | null>(null);
+  const [sessionManager] = useState(() => SessionManager.getInstance());
 
-  // Helper to get cart key for user
-  const getCartKey = (email: string) => `cart_${email}`;
+  // Helper to get cart key for session
+  const getCartKey = (sessionId: string) => `cart_session_${sessionId}`;
 
-  // Load user email from localStorage
+  // Load cart for current session
   useEffect(() => {
-    const storedUser = localStorage.getItem('user');
-    if (storedUser) {
-      const user = JSON.parse(storedUser);
-      setUserEmail(user.email);
-    } else {
-      setUserEmail(null);
-    }
-  }, []);
-
-  // Load cart for user on mount or when userEmail changes
-  useEffect(() => {
-    if (userEmail) {
-      const stored = localStorage.getItem(getCartKey(userEmail));
+    const session = sessionManager.getCurrentSession();
+    if (session) {
+      const stored = localStorage.getItem(getCartKey(session.sessionId));
       if (stored) {
         setCart(JSON.parse(stored));
       } else {
@@ -56,29 +47,34 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     } else {
       setCart({});
     }
-  }, [userEmail]);
+  }, []);
 
-  // Save cart to localStorage whenever it changes and userEmail is set
+  // Save cart to localStorage whenever it changes and session exists
   useEffect(() => {
-    if (userEmail) {
-      localStorage.setItem(getCartKey(userEmail), JSON.stringify(cart));
+    const session = sessionManager.getCurrentSession();
+    if (session) {
+      localStorage.setItem(getCartKey(session.sessionId), JSON.stringify(cart));
     }
-  }, [cart, userEmail]);
+  }, [cart, sessionManager]);
 
-  // Listen for login/logout (user change) in other tabs
+  // Listen for session changes
   useEffect(() => {
     const handleStorage = () => {
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        const user = JSON.parse(storedUser);
-        setUserEmail(user.email);
+      const session = sessionManager.getCurrentSession();
+      if (session) {
+        const stored = localStorage.getItem(getCartKey(session.sessionId));
+        if (stored) {
+          setCart(JSON.parse(stored));
+        } else {
+          setCart({});
+        }
       } else {
-        setUserEmail(null);
+        setCart({});
       }
     };
     window.addEventListener('storage', handleStorage);
     return () => window.removeEventListener('storage', handleStorage);
-  }, []);
+  }, [sessionManager]);
 
   const addToCart = (product: CartProduct) => {
     setCart(prev => {

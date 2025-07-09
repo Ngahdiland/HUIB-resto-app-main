@@ -1,8 +1,7 @@
 'use client';
 import { useEffect } from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-
-const ADMIN_EMAIL = 'fonyuydiland@gmail.com';
+import SessionManager from '@/utils/sessionManager';
 
 export default function useAuthRedirect() {
   const router = useRouter();
@@ -11,9 +10,9 @@ export default function useAuthRedirect() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     
-    const userStr = localStorage.getItem('user');
-    const user = userStr ? JSON.parse(userStr) : null;
-    const isAdmin = user && user.email === ADMIN_EMAIL;
+    const sessionManager = SessionManager.getInstance();
+    const user = sessionManager.getCurrentUser();
+    const isAdmin = sessionManager.isAdmin(user);
     const isAuthPage = pathname === '/login' || pathname === '/register';
     const isAdminRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/manage-') || pathname.startsWith('/payments') || pathname.startsWith('/settings') || pathname.startsWith('/feedbacks') || pathname.startsWith('/general-analysys') || pathname.startsWith('/users');
     const isPublicRoute = pathname === '/' || pathname.startsWith('/menu') || pathname.startsWith('/cart') || pathname.startsWith('/checkout') || pathname.startsWith('/profile');

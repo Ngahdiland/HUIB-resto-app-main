@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { FaShoppingCart, FaBars, FaTimes, FaUserCircle } from 'react-icons/fa';
+import SessionManager from '@/utils/sessionManager';
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -52,7 +53,8 @@ const Navbar = () => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
+    const sessionManager = SessionManager.getInstance();
+    sessionManager.logout();
     window.location.href = '/login';
   };
 
@@ -183,7 +185,8 @@ const Navbar = () => {
                   className="flex items-center gap-2 text-red-600 hover:text-red-700 w-full px-4 py-2"
                   onClick={() => {
                     setIsMobileMenuOpen(false);
-                    localStorage.removeItem('user');
+                    const sessionManager = SessionManager.getInstance();
+                    sessionManager.logout();
                     window.location.href = '/login';
                   }}
                 >

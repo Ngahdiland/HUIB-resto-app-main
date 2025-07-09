@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/Button';
 import { FiEye, FiEyeOff } from 'react-icons/fi';
+import SessionManager from '@/utils/sessionManager';
 
 export default function AuthPage() {
   const [loginEmail, setLoginEmail] = useState('');
@@ -25,7 +26,9 @@ export default function AuthPage() {
       const data = await res.json();
       if (res.status === 200) {
         if (data.user) {
-          localStorage.setItem('user', JSON.stringify(data.user));
+          // Create a new session for this user
+          const sessionManager = SessionManager.getInstance();
+          sessionManager.createSession(data.user);
         }
         if (loginEmail.trim().toLowerCase() === 'fonyuydiland@gmail.com') {
           router.push('/dashboard');
