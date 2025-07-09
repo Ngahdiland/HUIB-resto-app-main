@@ -36,123 +36,34 @@ const Payments = () => {
   const [methodFilter, setMethodFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [paymentsState, setPaymentsState] = useState<Payment[]>([]);
+  const [loading, setLoading] = useState(true);
   const paymentsPerPage = 6;
 
-  // Sample payments data
-  const [paymentsState, setPaymentsState] = useState([
-    {
-      id: 'PAY-001',
-      orderId: 'ORD-001',
-      customer: {
-        name: 'John Doe',
-        email: 'john@example.com'
-      },
-      amount: 34970,
-      method: 'credit_card',
-      status: 'completed',
-      transactionId: 'TXN-123456789',
-      date: '2024-01-15 14:30',
-      processedDate: '2024-01-15 14:32',
-      gateway: 'Credit Card',
-      fee: 1050,
-      netAmount: 33920,
-      refundAmount: 0,
-      currency: 'FCFA',
-      description: 'Payment for order ORD-001',
-      billingAddress: '123 Main St, Yaoundé',
-      last4: '4242'
-    },
-    {
-      id: 'PAY-002',
-      orderId: 'ORD-002',
-      customer: {
-        name: 'Jane Smith',
-        email: 'jane@example.com'
-      },
-      amount: 17980,
-      method: 'mtn_momo',
-      status: 'completed',
-      transactionId: 'MTN-987654321',
-      date: '2024-01-15 13:45',
-      processedDate: '2024-01-15 13:47',
-      gateway: 'MTN MoMo',
-      fee: 500,
-      netAmount: 17480,
-      refundAmount: 0,
-      currency: 'FCFA',
-      description: 'Payment for order ORD-002',
-      billingAddress: '456 Oak Ave, Douala',
-      last4: null
-    },
-    {
-      id: 'PAY-003',
-      orderId: 'ORD-003',
-      customer: {
-        name: 'Mike Johnson',
-        email: 'mike@example.com'
-      },
-      amount: 33970,
-      method: 'cash_on_delivery',
-      status: 'pending',
-      transactionId: null,
-      date: '2024-01-15 13:20',
-      processedDate: null,
-      gateway: 'Cash on Delivery',
-      fee: 0,
-      netAmount: 33970,
-      refundAmount: 0,
-      currency: 'FCFA',
-      description: 'Cash payment for order ORD-003',
-      billingAddress: '789 Pine St, Bamenda',
-      last4: null
-    },
-    {
-      id: 'PAY-004',
-      orderId: 'ORD-004',
-      customer: {
-        name: 'Sarah Wilson',
-        email: 'sarah@example.com'
-      },
-      amount: 18990,
-      method: 'orange_money',
-      status: 'failed',
-      transactionId: 'OM-456789123',
-      date: '2024-01-15 12:55',
-      processedDate: null,
-      gateway: 'Orange Money',
-      fee: 0,
-      netAmount: 0,
-      refundAmount: 0,
-      currency: 'FCFA',
-      description: 'Payment for order ORD-004',
-      billingAddress: '321 Elm St, Bafoussam',
-      last4: null
-    },
-    {
-      id: 'PAY-005',
-      orderId: 'ORD-005',
-      customer: {
-        name: 'David Brown',
-        email: 'david@example.com'
-      },
-      amount: 45500,
-      method: 'credit_card',
-      status: 'refunded',
-      transactionId: 'TXN-789123456',
-      date: '2024-01-15 11:30',
-      processedDate: '2024-01-15 11:32',
-      gateway: 'Credit Card',
-      fee: 1370,
-      netAmount: 44130,
-      refundAmount: 45500,
-      currency: 'FCFA',
-      description: 'Payment for order ORD-005',
-      billingAddress: '654 Maple Dr, Garoua',
-      last4: '5555'
-    }
-  ]);
+  // Fetch payments data on component mount
+  useEffect(() => {
+    const fetchPayments = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/payments/all');
+        if (response.ok) {
+          const data = await response.json();
+          setPaymentsState(data.payments || []);
+        } else {
+          console.error('Failed to fetch payments');
+        }
+      } catch (error) {
+        console.error('Error fetching payments:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const getStatusColor = (status: string) => {
+    fetchPayments();
+  }, []);
+
+  const getStatusColor = (status: string | undefined) => {
+    if (!status) return 'bg-gray-100 text-gray-800';
     switch (status) {
       case 'completed': return 'bg-green-100 text-green-800';
       case 'pending': return 'bg-yellow-100 text-yellow-800';
@@ -163,9 +74,12 @@ const Payments = () => {
     }
   };
 
-  const getMethodIcon = (method: string) => {
+  const getMethodIcon = (method: string | undefined) => {
+    if (!method) return <FaDollarSign className="text-gray-600" />;
     switch (method) {
       case 'credit_card': return <FaCreditCard className="text-blue-600" />;
+      case 'mtn': return <span className="text-yellow-600 font-bold">MTN</span>;
+      case 'orange': return <span className="text-orange-500 font-bold">OM</span>;
       case 'mtn_momo': return <span className="text-yellow-600 font-bold">MTN</span>;
       case 'orange_money': return <span className="text-orange-500 font-bold">OM</span>;
       case 'cash_on_delivery': return <FaMoneyBillWave className="text-green-600" />;
@@ -173,9 +87,12 @@ const Payments = () => {
     }
   };
 
-  const getMethodColor = (method: string) => {
+  const getMethodColor = (method: string | undefined) => {
+    if (!method) return 'bg-gray-100 text-gray-800';
     switch (method) {
       case 'credit_card': return 'bg-blue-100 text-blue-800';
+      case 'mtn': return 'bg-yellow-100 text-yellow-800';
+      case 'orange': return 'bg-orange-100 text-orange-800';
       case 'mtn_momo': return 'bg-yellow-100 text-yellow-800';
       case 'orange_money': return 'bg-orange-100 text-orange-800';
       case 'cash_on_delivery': return 'bg-green-100 text-green-800';
@@ -184,19 +101,19 @@ const Payments = () => {
   };
 
   const filteredPayments = paymentsState.filter(payment => {
-    const matchesSearch = (payment.id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (payment.orderId || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (payment.customer?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (payment.transactionId || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (payment.paymentId || payment.id || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (payment.userName || payment.customer?.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (payment.email || payment.customer?.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (payment.phoneNumber || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesStatus = statusFilter === 'all' || payment.status === statusFilter;
-    const matchesMethod = methodFilter === 'all' || payment.method === methodFilter;
+    const matchesMethod = methodFilter === 'all' || payment.paymentMethod === methodFilter || payment.method === methodFilter;
     return matchesSearch && matchesStatus && matchesMethod;
   });
 
-  const totalRevenue = paymentsState.filter(p => p.status === 'completed').reduce((sum, p) => sum + (p.netAmount || 0), 0);
+  const totalRevenue = paymentsState.filter(p => p.status === 'completed').reduce((sum, p) => sum + (p.amountPaid || p.amount || 0), 0);
   const totalFees = paymentsState.filter(p => p.status === 'completed').reduce((sum, p) => sum + (p.fee || 0), 0);
-  const pendingAmount = paymentsState.filter(p => p.status === 'pending').reduce((sum, p) => sum + (p.amount || 0), 0);
-  const failedAmount = paymentsState.filter(p => p.status === 'failed').reduce((sum, p) => sum + (p.amount || 0), 0);
+  const pendingAmount = paymentsState.filter(p => p.status === 'pending').reduce((sum, p) => sum + (p.amountPaid || p.amount || 0), 0);
+  const failedAmount = paymentsState.filter(p => p.status === 'failed').reduce((sum, p) => sum + (p.amountPaid || p.amount || 0), 0);
 
   const safeString = (val: any) => (typeof val === 'string' ? val : '');
 
@@ -213,10 +130,10 @@ const Payments = () => {
 
   // Export payments as CSV
   const handleExport = () => {
-    let csv = 'id,orderId,customer_name,customer_email,amount,method,status,transactionId,date,processedDate,gateway,fee,netAmount,refundAmount,currency,description,billingAddress,last4\n';
+    let csv = 'paymentId,userName,email,phoneNumber,amountPaid,paymentMethod,status,date,action\n';
     filteredPayments.forEach(p => {
       if (!p) return;
-      csv += `${safeReplaceAll(p.id, '"', '""')},${safeReplaceAll(p.orderId, '"', '""')},${safeReplaceAll(p.customer?.name, '"', '""')},${safeReplaceAll(p.customer?.email, '"', '""')},${safeReplaceAll(p.amount, '"', '""')},${safeReplaceAll(p.method, '"', '""')},${safeReplaceAll(p.status, '"', '""')},${safeReplaceAll(p.transactionId, '"', '""')},${safeReplaceAll(p.date, '"', '""')},${safeReplaceAll(p.processedDate, '"', '""')},${safeReplaceAll(p.gateway, '"', '""')},${safeReplaceAll(p.fee, '"', '""')},${safeReplaceAll(p.netAmount, '"', '""')},${safeReplaceAll(p.refundAmount, '"', '""')},${safeReplaceAll(p.currency, '"', '""')},"${safeReplaceAll(p.description, '"', '""')}",${safeReplaceAll(p.billingAddress, '"', '""')},${safeReplaceAll(p.last4, '"', '""')}\n`;
+      csv += `${safeReplaceAll(p.paymentId || p.id, '"', '""')},${safeReplaceAll(p.userName || p.customer?.name, '"', '""')},${safeReplaceAll(p.email || p.customer?.email, '"', '""')},${safeReplaceAll(p.phoneNumber, '"', '""')},${safeReplaceAll(p.amountPaid || p.amount, '"', '""')},${safeReplaceAll(p.paymentMethod || p.method, '"', '""')},${safeReplaceAll(p.status, '"', '""')},${safeReplaceAll(p.date, '"', '""')},${safeReplaceAll(p.action, '"', '""')}\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -239,9 +156,10 @@ const Payments = () => {
     csv += '\nBreakdown by Method\nMethod,Count,Total Amount\n';
     const methodMap: Record<string, { count: number; total: number }> = {};
     paymentsState.forEach(p => {
-      if (!methodMap[p.method]) methodMap[p.method] = { count: 0, total: 0 };
-      methodMap[p.method].count++;
-      methodMap[p.method].total += (p.amount || 0);
+      const method = p.paymentMethod || p.method || 'unknown';
+      if (!methodMap[method]) methodMap[method] = { count: 0, total: 0 };
+      methodMap[method].count++;
+      methodMap[method].total += (p.amountPaid || p.amount || 0);
     });
     Object.entries(methodMap).forEach(([method, data]) => {
       const d = data as { count: number; total: number };
@@ -250,9 +168,10 @@ const Payments = () => {
     csv += '\nBreakdown by Status\nStatus,Count,Total Amount\n';
     const statusMap: Record<string, { count: number; total: number }> = {};
     paymentsState.forEach(p => {
-      if (!statusMap[p.status]) statusMap[p.status] = { count: 0, total: 0 };
-      statusMap[p.status].count++;
-      statusMap[p.status].total += (p.amount || 0);
+      const status = p.status || 'unknown';
+      if (!statusMap[status]) statusMap[status] = { count: 0, total: 0 };
+      statusMap[status].count++;
+      statusMap[status].total += (p.amountPaid || p.amount || 0);
     });
     Object.entries(statusMap).forEach(([status, data]) => {
       const d = data as { count: number; total: number };
@@ -304,6 +223,14 @@ const Payments = () => {
     if (page < 1 || page > totalPages) return;
     setCurrentPage(page);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg text-gray-600">Loading payments...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -389,9 +316,9 @@ const Payments = () => {
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
             >
               <option value="all">All Methods</option>
+              <option value="mtn">MTN MoMo</option>
+              <option value="orange">Orange Money</option>
               <option value="credit_card">Credit Card</option>
-              <option value="mtn_momo">MTN MoMo</option>
-              <option value="orange_money">Orange Money</option>
               <option value="cash_on_delivery">Cash on Delivery</option>
             </select>
           </div>
@@ -426,7 +353,7 @@ const Payments = () => {
                     Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Transaction
+                    Phone
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Date
@@ -438,22 +365,22 @@ const Payments = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
                 {paginatedPayments.map((payment) => (
-                  <tr key={payment.id} className="hover:bg-gray-50">
+                  <tr key={payment.paymentId || payment.id} className="hover:bg-gray-50">
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{payment.id}</div>
-                        <div className="text-sm text-gray-500">Order: {payment.orderId}</div>
+                        <div className="text-sm font-medium text-gray-900">{payment.paymentId || payment.id}</div>
+                        <div className="text-sm text-gray-500">Action: {payment.action || 'order'}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{payment.customer?.name || ''}</div>
-                        <div className="text-sm text-gray-500">{payment.customer?.email || ''}</div>
+                        <div className="text-sm font-medium text-gray-900">{payment.userName || payment.customer?.name || ''}</div>
+                        <div className="text-sm text-gray-500">{payment.email || payment.customer?.email || ''}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div>
-                        <div className="text-sm font-semibold text-gray-900">{(payment.amount || 0).toFixed(0)} FCFA</div>
+                        <div className="text-sm font-semibold text-gray-900">{(payment.amountPaid || payment.amount || 0).toFixed(0)} FCFA</div>
                         {(payment.fee || 0) > 0 && (
                           <div className="text-xs text-gray-500">Fee: {(payment.fee || 0).toFixed(0)} FCFA</div>
                         )}
@@ -464,9 +391,9 @@ const Payments = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center">
-                        {getMethodIcon(payment.method)}
-                        <span className={`ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getMethodColor(payment.method)}`}>
-                          {payment.method.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+                        {getMethodIcon(payment.paymentMethod || payment.method)}
+                        <span className={`ml-2 inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getMethodColor(payment.paymentMethod || payment.method)}`}>
+                          {(payment.paymentMethod || payment.method || '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                         </span>
                       </div>
                       {payment.last4 && (
@@ -480,7 +407,7 @@ const Payments = () => {
                           value={payment.status}
                           onChange={e => {
                             const newStatus = e.target.value;
-                            setPaymentsState(prev => prev.map(p => p.id === payment.id ? { ...p, status: newStatus } : p));
+                            setPaymentsState(prev => prev.map(p => (p.paymentId || p.id) === (payment.paymentId || payment.id) ? { ...p, status: newStatus } : p));
                           }}
                         >
                           <option value="completed">Completed</option>
@@ -491,21 +418,18 @@ const Payments = () => {
                         </select>
                       ) : (
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(payment.status)}`}>
-                          {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                          {payment.status ? payment.status.charAt(0).toUpperCase() + payment.status.slice(1) : 'Unknown'}
                         </span>
                       )}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div>
-                        <div className="text-sm text-gray-900">{payment.gateway}</div>
-                        {payment.transactionId && (
-                          <div className="text-xs text-gray-500">{payment.transactionId}</div>
-                        )}
+                        <div className="text-sm text-gray-900">{payment.phoneNumber || 'N/A'}</div>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div>
-                        <div>{payment.date}</div>
+                        <div>{payment.date ? new Date(payment.date).toLocaleDateString() : 'N/A'}</div>
                         {payment.processedDate && (
                           <div className="text-xs text-gray-500">Processed: {payment.processedDate}</div>
                         )}
