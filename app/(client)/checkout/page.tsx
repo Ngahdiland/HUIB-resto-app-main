@@ -1,7 +1,7 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
-import { FaArrowLeft, FaCreditCard, FaMapMarkerAlt, FaPhone, FaEnvelope, FaLock } from 'react-icons/fa';
+import { FaArrowLeft, FaCreditCard, FaMapMarkerAlt, FaPhone, FaEnvelope, FaLock, FaCopy, FaCheckCircle, FaUpload } from 'react-icons/fa';
 import { useCart } from '../../../context/CartContext';
 
 interface CheckoutItem {
@@ -11,33 +11,159 @@ interface CheckoutItem {
   quantity: number;
 }
 
+const ORDERS_KEY = 'huib_orders';
+
 const Checkout = () => {
+  const [phase, setPhase] = useState(1);
   const [orderPlaced, setOrderPlaced] = useState(false);
+  const [orderId, setOrderId] = useState<string | null>(null);
+  const [userInfo, setUserInfo] = useState({
+    name: '',
+    address: '',
+    phone: '',
+  });
+  const [receipt, setReceipt] = useState<File | null>(null);
+  const [receiptPreview, setReceiptPreview] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminPassword, setAdminPassword] = useState('');
+  const [pendingOrders, setPendingOrders] = useState<any[]>([]);
+  const [approvedOrder, setApprovedOrder] = useState<any | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { cart, clearCart } = useCart();
   const checkoutItems = Object.values(cart);
 
-  const getSubtotal = () => {
-    return checkoutItems.reduce((total, item) => total + (item.product.price * item.quantity), 0);
+  // Poll for order status if user has placed an order
+  useEffect(() => {
+    if (!orderId) return;
+    const interval = setInterval(() => {
+      const orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
+      const myOrder = orders.find((o: any) => o.id === orderId);
+      if (myOrder && myOrder.status === 'approved') {
+        setApprovedOrder(myOrder);
+        clearInterval(interval);
+      }
+    }, 1500);
+    return () => clearInterval(interval);
+  }, [orderId]);
+
+  // Admin: load pending orders
+  useEffect(() => {
+    if (isAdmin) {
+      const orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
+      setPendingOrders(orders.filter((o: any) => o.status === 'pending'));
+    }
+  }, [isAdmin, orderPlaced]);
+
+  const getSubtotal = () => checkoutItems.reduce((total, item) => total + (item.product.price * item.quantity), 0);
+  const getTax = () => getSubtotal() * 0.08;
+  const getDeliveryFee = () => getSubtotal() > 50000 ? 0 : 599;
+  const getTotal = () => getSubtotal() + getTax() + getDeliveryFee();
+
+  const handleUserInfoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUserInfo({ ...userInfo, [e.target.name]: e.target.value });
   };
 
-  const getTax = () => {
-    return getSubtotal() * 0.08;
+  const handleContinue = (e: React.FormEvent) => {
+    e.preventDefault();
+    setPhase(2);
   };
 
-  const getDeliveryFee = () => {
-    return getSubtotal() > 50000 ? 0 : 599;
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
   };
 
-  const getTotal = () => {
-    return getSubtotal() + getTax() + getDeliveryFee();
+  const handleReceiptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setReceipt(e.target.files[0]);
+      setReceiptPreview(URL.createObjectURL(e.target.files[0]));
+    }
   };
 
-  const handlePlaceOrder = () => {
+  // Save order to localStorage
+  const handleSubmitPayment = (e: React.FormEvent) => {
+    e.preventDefault();
+    const id = 'order-' + Date.now();
+    const order = {
+      id,
+      userInfo,
+      items: checkoutItems,
+      total: getTotal(),
+      receipt: receiptPreview, // just preview for now
+      status: 'pending',
+      createdAt: new Date().toISOString(),
+    };
+    const orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
+    orders.push(order);
+    localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
     setOrderPlaced(true);
+    setOrderId(id);
     clearCart();
   };
 
-  if (checkoutItems.length === 0 && !orderPlaced) {
+  // Admin: approve order
+  const handleApproveOrder = (id: string) => {
+    const orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
+    const idx = orders.findIndex((o: any) => o.id === id);
+    if (idx !== -1) {
+      orders[idx].status = 'approved';
+      localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
+      setPendingOrders(orders.filter((o: any) => o.status === 'pending'));
+    }
+  };
+
+  // Admin login (simple password: 'admin123')
+  const handleAdminLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (adminPassword === 'admin123') {
+      setIsAdmin(true);
+    } else {
+      alert('Incorrect password');
+    }
+  };
+
+  if (isAdmin) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="max-w-2xl w-full bg-white rounded-lg shadow-md p-8">
+          <h1 className="text-2xl font-bold text-gray-800 mb-6">Pending Orders</h1>
+          {pendingOrders.length === 0 ? (
+            <p className="text-gray-600">No pending orders.</p>
+          ) : (
+            pendingOrders.map((order) => (
+              <div key={order.id} className="mb-8 border-b pb-4">
+                <div className="mb-2 font-semibold">{order.userInfo.name} ({order.userInfo.phone})</div>
+                <div className="mb-2 text-sm text-gray-600">{order.userInfo.address}</div>
+                <div className="mb-2">Total: <span className="font-bold">{order.total.toFixed(0)} FCFA</span></div>
+                <div className="mb-2">Items:
+                  <ul className="list-disc ml-6">
+                    {order.items.map((item: any) => (
+                      <li key={item.product.id}>{item.product.name} x {item.quantity}</li>
+                    ))}
+                  </ul>
+                </div>
+                {order.receipt && (
+                  <div className="mb-2">
+                    <img src={order.receipt} alt="Receipt" className="h-24 rounded border" />
+                  </div>
+                )}
+                <button
+                  onClick={() => handleApproveOrder(order.id)}
+                  className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                >
+                  Approve Order
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (checkoutItems.length === 0 && !orderPlaced && !approvedOrder) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
@@ -55,19 +181,15 @@ const Checkout = () => {
     );
   }
 
-  if (orderPlaced) {
+  if (approvedOrder) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="bg-white rounded-lg shadow-md p-8 max-w-md w-full text-center">
-          <div className="text-6xl mb-4">🎉</div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">Order Placed Successfully!</h1>
+          <FaCheckCircle className="text-green-500 text-6xl mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">Order is successfully placed, thanks!</h1>
           <p className="text-gray-600 mb-6">
-            Your order has been confirmed and is being prepared. You'll receive an email confirmation shortly.
+            Your order has been approved. Estimated delivery time: 30-45 minutes.
           </p>
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-            <p className="text-green-800 font-semibold">Order #HUIB-2024-001</p>
-            <p className="text-green-600 text-sm">Estimated delivery: 30-45 minutes</p>
-          </div>
           <div className="flex gap-4">
             <Link 
               href="/my-orders" 
@@ -83,6 +205,58 @@ const Checkout = () => {
             </Link>
           </div>
         </div>
+      </div>
+    );
+  }
+
+  if (orderPlaced) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="bg-white rounded-lg shadow-md p-8 max-w-md w-full text-center">
+          <FaCheckCircle className="text-green-500 text-6xl mx-auto mb-4" />
+          <h1 className="text-2xl font-bold text-gray-800 mb-4">Thanks, your order is being reviewed!</h1>
+          <p className="text-gray-600 mb-6">
+            We have received your payment receipt. Our team will review and approve your order soon.
+          </p>
+          <div className="flex gap-4">
+            <Link 
+              href="/my-orders" 
+              className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Track Order
+            </Link>
+            <Link 
+              href="/" 
+              className="flex-1 border border-gray-300 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              Back to Home
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Admin login form
+  if (!isAdmin && typeof window !== 'undefined' && window.location.search.includes('admin')) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <form onSubmit={handleAdminLogin} className="bg-white rounded-lg shadow-md p-8 max-w-md w-full text-center">
+          <h2 className="text-2xl font-bold text-gray-800 mb-4">Admin Login</h2>
+          <input
+            type="password"
+            placeholder="Admin password"
+            value={adminPassword}
+            onChange={e => setAdminPassword(e.target.value)}
+            className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-4"
+          />
+          <button
+            type="submit"
+            className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors"
+          >
+            Login
+          </button>
+        </form>
       </div>
     );
   }
@@ -104,9 +278,10 @@ const Checkout = () => {
       </div>
       <div className="max-w-6xl mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2">
-            <div className="bg-white rounded-lg shadow-md p-6">
-              <h2 className="text-2xl font-bold text-gray-800 mb-6">Order Summary</h2>
+          {/* Cart Summary */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-lg shadow-md p-6 sticky top-4">
+              <h2 className="text-xl font-semibold text-gray-800 mb-6">Order Summary</h2>
               <div className="divide-y">
                 {checkoutItems.map((item) => (
                   <div key={item.product.id} className="py-4 flex justify-between items-center">
@@ -147,17 +322,109 @@ const Checkout = () => {
                   </div>
                 </div>
               </div>
-              <button
-                onClick={handlePlaceOrder}
-                className="w-full mt-8 bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors"
-              >
-                Place Order
-              </button>
             </div>
           </div>
-          <div className="lg:col-span-1">
-            {/* You can add additional info or a summary here if needed */}
-          </div>
+          {/* Phase 1: User Info Form */}
+          {phase === 1 && (
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h2 className="text-2xl font-bold text-gray-800 mb-6">Delivery Information</h2>
+                <form onSubmit={handleContinue} className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Name</label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={userInfo.name}
+                      onChange={handleUserInfoChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Delivery Address</label>
+                    <input
+                      type="text"
+                      name="address"
+                      value={userInfo.address}
+                      onChange={handleUserInfoChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number</label>
+                    <input
+                      type="tel"
+                      name="phone"
+                      value={userInfo.phone}
+                      onChange={handleUserInfoChange}
+                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                      required
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors"
+                  >
+                    Continue to Payment
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
+          {/* Phase 2: Payment Instructions & Upload Receipt */}
+          {phase === 2 && (
+            <div className="lg:col-span-2">
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <h2 className="text-2xl font-bold text-gray-800 mb-6">Payment Instructions</h2>
+                <div className="mb-6">
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="font-semibold text-gray-700">Send payment to:</span>
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="font-mono text-lg text-gray-900">677828170</span>
+                    <button
+                      type="button"
+                      onClick={() => handleCopy('677828170')}
+                      className="p-1 rounded bg-gray-100 hover:bg-gray-200 border border-gray-300"
+                    >
+                      <FaCopy className="inline" />
+                      {copied && <span className="ml-1 text-green-600 text-xs">Copied!</span>}
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="font-semibold text-gray-700">Name:</span>
+                    <span className="font-mono text-lg text-gray-900">Diland fonyuy</span>
+                  </div>
+                </div>
+                <form onSubmit={handleSubmitPayment} className="space-y-6">
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2">Upload Payment Receipt</label>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      ref={fileInputRef}
+                      onChange={handleReceiptChange}
+                      className="w-full"
+                      required
+                    />
+                    {receiptPreview && (
+                      <div className="mt-2">
+                        <img src={receiptPreview} alt="Receipt Preview" className="h-32 rounded border" />
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    type="submit"
+                    className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <FaUpload /> Submit Payment
+                  </button>
+                </form>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
