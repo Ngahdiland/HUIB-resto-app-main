@@ -4,9 +4,12 @@ import Link from 'next/link';
 import { FaStar, FaPhone, FaEnvelope, FaMapMarkerAlt, FaArrowRight, FaCheck } from 'react-icons/fa';
 import ClientFooter from '@/components/client-footer';
 import { useCart } from '../../context/CartContext';
+import { products as importedProducts } from '@/public/assets/assets';
+import ProductCard from '@/components/ProductCard';
 
 const Home = () => {
   const [email, setEmail] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -14,58 +17,6 @@ const Home = () => {
     setEmail('');
     // TODO: Implement newsletter subscription
   };
-
-  // Top Traditional Cameroonian Dishes
-  const topTraditionalFoods = [
-    {
-      id: 1,
-      name: 'Ndolé',
-      price: 2500,
-      image: '/assets/ndole.jpg',
-      rating: 4.9,
-      description: 'A rich stew of bitter leaves, peanuts, and meat or fish. Signature dish of the Littoral region.'
-    },
-    {
-      id: 2,
-      name: 'Eru & Water Fufu',
-      price: 2000,
-      image: '/assets/eru.jpg',
-      rating: 4.8,
-      description: 'Eru leaves cooked with waterleaf, palm oil, and assorted meats. Popular in Southwest.'
-    },
-    {
-      id: 3,
-      name: 'Achu & Yellow Soup',
-      price: 2200,
-      image: '/assets/achu.jpg',
-      rating: 4.7,
-      description: 'Pounded cocoyams with spicy yellow soup, a Northwest delicacy.'
-    },
-    {
-      id: 4,
-      name: 'Koki Beans',
-      price: 1800,
-      image: '/assets/koki.jpg',
-      rating: 4.6,
-      description: 'Steamed black-eyed peas with red palm oil, a Littoral and Southwest favorite.'
-    },
-    {
-      id: 5,
-      name: 'Mbongo Tchobi',
-      price: 2300,
-      image: '/assets/mbongo.jpg',
-      rating: 4.8,
-      description: 'Spicy black stew made with native spices and fish, from the Centre region.'
-    },
-    {
-      id: 6,
-      name: 'Sanga',
-      price: 1700,
-      image: '/assets/sanga.jpg',
-      rating: 4.5,
-      description: 'Mixture of maize, cassava leaves, and palm oil, popular in the South.'
-    }
-  ];
 
   const features = [
     {
@@ -181,41 +132,35 @@ const Home = () => {
             <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Top Traditional Products</h2>
             <p className="text-lg md:text-xl text-gray-600">Discover the most loved traditional Cameroonian dishes</p>
           </div>
+          <div className="flex justify-end mb-4">
+            <select
+              value={selectedCategory}
+              onChange={e => setSelectedCategory(e.target.value)}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+            >
+              <option value="all">All Categories</option>
+              {[...new Set(importedProducts.map(p => p.category))].map(category => (
+                <option key={category} value={category}>{category}</option>
+              ))}
+            </select>
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
-            {topTraditionalFoods.slice(0, 4).map((food) => (
-              <div key={food.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                <img 
-                  src={food.image} 
-                  alt={food.name} 
-                  className="w-full h-40 md:h-48 object-cover"
+            {importedProducts
+              .filter(product => selectedCategory === 'all' || product.category === selectedCategory)
+              .slice() // copy to avoid mutating original
+              .sort((a, b) => b.rating - a.rating)
+              .slice(0, 4)
+              .map((product) => (
+                <ProductCard
+                  key={product.id}
+                  name={product.name}
+                  price={product.price}
+                  image={product.image[0]?.src}
+                  description={product.description + ' (' + product.category + ')'}
+                  rating={product.rating}
+                  onAddToCart={() => {}}
                 />
-                <div className="p-3 md:p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-base md:text-lg font-semibold text-gray-800">{food.name}</h3>
-                    <div className="flex items-center text-yellow-500">
-                      <FaStar />
-                      <span className="ml-1 text-xs md:text-sm">{food.rating}</span>
-                    </div>
-                  </div>
-                  <p className="text-xs md:text-sm text-gray-600 mb-3">{food.description}</p>
-                  <div className="flex justify-between items-center">
-                    <span className="text-lg md:text-xl font-bold text-red-600">{food.price} FCFA</span>
-                    <button 
-                      className="bg-red-600 text-white px-3 md:px-4 py-1 md:py-2 rounded hover:bg-red-700 transition-colors text-sm"
-                      onClick={() => addToCart({
-                        id: food.id.toString(),
-                        name: food.name,
-                        price: food.price,
-                        image: food.image,
-                        description: food.description
-                      })}
-                    >
-                      Add to Cart
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
       </section>

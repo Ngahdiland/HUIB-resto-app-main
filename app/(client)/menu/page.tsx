@@ -4,16 +4,18 @@ import { FaSearch, FaFilter, FaStar, FaShoppingCart } from 'react-icons/fa';
 import ProductCard from '@/components/ProductCard';
 import { useCart } from '../../../context/CartContext';
 import { useRouter } from 'next/navigation';
+import { products as importedProducts } from '@/public/assets/assets';
 
 interface Product {
   id: string;
   name: string;
   price: number;
-  image: string;
+  image: any[]; // Accept array to match importedProducts
   description: string;
   category: string;
   rating: number;
   stock: number;
+  // Optionally add other fields if needed
 }
 
 const Menu = () => {
@@ -26,131 +28,13 @@ const Menu = () => {
   const { cart, addToCart, removeFromCart, clearCart } = useCart();
   const router = useRouter();
 
-  const categories = [
-    { value: 'all', label: 'All Regions' },
-    { value: 'adamawa', label: 'Adamawa' },
-    { value: 'centre', label: 'Centre' },
-    { value: 'east', label: 'East' },
-    { value: 'far_north', label: 'Far North' },
-    { value: 'littoral', label: 'Littoral' },
-    { value: 'north', label: 'North' },
-    { value: 'northwest', label: 'Northwest' },
-    { value: 'west', label: 'West' },
-    { value: 'south', label: 'South' },
-    { value: 'southwest', label: 'Southwest' }
-  ];
-
-  // Replace sampleProducts with Cameroonian dishes
-  const sampleProducts: Product[] = [
-    {
-      id: '1',
-      name: 'Ndolé',
-      price: 2500,
-      image: '/assets/ndole.jpg',
-      description: 'A rich stew of bitter leaves, peanuts, and meat or fish. Signature dish of the Littoral region.',
-      category: 'littoral',
-      rating: 4.9,
-      stock: 10
-    },
-    {
-      id: '2',
-      name: 'Eru & Water Fufu',
-      price: 2000,
-      image: '/assets/eru.jpg',
-      description: 'Eru leaves cooked with waterleaf, palm oil, and assorted meats. Popular in Southwest.',
-      category: 'southwest',
-      rating: 4.8,
-      stock: 12
-    },
-    {
-      id: '3',
-      name: 'Achu & Yellow Soup',
-      price: 2200,
-      image: '/assets/achu.jpg',
-      description: 'Pounded cocoyams with spicy yellow soup, a Northwest delicacy.',
-      category: 'northwest',
-      rating: 4.7,
-      stock: 8
-    },
-    {
-      id: '4',
-      name: 'Koki Beans',
-      price: 1800,
-      image: '/assets/koki.jpg',
-      description: 'Steamed black-eyed peas with red palm oil, a Littoral and Southwest favorite.',
-      category: 'littoral',
-      rating: 4.6,
-      stock: 15
-    },
-    {
-      id: '5',
-      name: 'Mbongo Tchobi',
-      price: 2300,
-      image: '/assets/mbongo.jpg',
-      description: 'Spicy black stew made with native spices and fish, from the Centre region.',
-      category: 'centre',
-      rating: 4.8,
-      stock: 9
-    },
-    {
-      id: '6',
-      name: 'Sanga',
-      price: 1700,
-      image: '/assets/sanga.jpg',
-      description: 'Mixture of maize, cassava leaves, and palm oil, popular in the South.',
-      category: 'south',
-      rating: 4.5,
-      stock: 11
-    },
-    {
-      id: '7',
-      name: 'Kilishi',
-      price: 2000,
-      image: '/assets/kilishi.jpg',
-      description: 'Spicy dried beef, a specialty of the North and Far North.',
-      category: 'far_north',
-      rating: 4.7,
-      stock: 7
-    },
-    {
-      id: '8',
-      name: 'Ndomba',
-      price: 2100,
-      image: '/assets/ndomba.jpg',
-      description: 'Fish or chicken wrapped in leaves and steamed with spices, common in the East.',
-      category: 'east',
-      rating: 4.6,
-      stock: 10
-    },
-    {
-      id: '9',
-      name: 'Fufu Corn & Njama Njama',
-      price: 1900,
-      image: '/assets/njama.jpg',
-      description: 'Corn fufu served with huckleberry leaves, a Northwest and West favorite.',
-      category: 'west',
-      rating: 4.8,
-      stock: 13
-    },
-    {
-      id: '10',
-      name: 'Foléré Juice',
-      price: 800,
-      image: '/assets/folere.jpg',
-      description: 'Refreshing hibiscus flower juice, enjoyed across Adamawa and North.',
-      category: 'adamawa',
-      rating: 4.9,
-      stock: 20
-    }
-  ];
+  const uniqueCategories = Array.from(new Set(importedProducts.map(p => p.category)));
 
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setProducts(sampleProducts);
-      setFilteredProducts(sampleProducts);
-      setLoading(false);
-    }, 1000);
+    // Use importedProducts for initialization
+    setProducts(importedProducts);
+    setFilteredProducts(importedProducts);
+    setLoading(false);
   }, []);
 
   useEffect(() => {
@@ -249,10 +133,9 @@ const Menu = () => {
               onChange={(e) => setSelectedCategory(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
             >
-              {categories.map(category => (
-                <option key={category.value} value={category.value}>
-                  {category.label}
-                </option>
+              <option value="all">All Categories</option>
+              {uniqueCategories.map(category => (
+                <option key={category} value={category}>{category}</option>
               ))}
             </select>
             <select
@@ -278,62 +161,22 @@ const Menu = () => {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {filteredProducts.map((product) => (
-              <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="relative">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-full h-48 object-cover"
-                  />
-                  <div className="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 rounded-full text-sm font-semibold">
-                    {product.price} FCFA
-                  </div>
-                  {product.stock < 5 && (
-                    <div className="absolute top-2 left-2 bg-yellow-500 text-white px-2 py-1 rounded-full text-sm font-semibold">
-                      Low Stock
-                    </div>
-                  )}
-                </div>
-                <div className="p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="text-lg font-semibold text-gray-800">{product.name}</h3>
-                    <div className="flex items-center text-yellow-500">
-                      <FaStar />
-                      <span className="ml-1 text-sm">{product.rating}</span>
-                    </div>
-                  </div>
-                  <p className="text-gray-600 text-sm mb-4">{product.description}</p>
-                  <div className="flex justify-between items-center">
-                    <span className="text-xl font-bold text-red-600">{product.price} FCFA</span>
-                    <div className="flex items-center gap-2">
-                      {cart[product.id]?.quantity > 0 && (
-                        <button
-                          onClick={() => removeFromCart(product.id)}
-                          className="bg-gray-200 text-gray-700 w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors"
-                        >
-                          -
-                        </button>
-                      )}
-                      {cart[product.id]?.quantity > 0 && (
-                        <span className="text-sm font-semibold">{cart[product.id].quantity}</span>
-                      )}
-                      <button
-                        onClick={() => addToCart({
-                          id: product.id,
-                          name: product.name,
-                          price: product.price,
-                          image: product.image,
-                          description: product.description
-                        })}
-                        disabled={product.stock === 0}
-                        className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
-                      >
-                        {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <ProductCard
+                key={product.id}
+                name={product.name}
+                price={product.price}
+                image={product.image[0]?.src}
+                description={product.description}
+                rating={product.rating}
+                category={product.category}
+                onAddToCart={() => addToCart({
+                  id: product.id,
+                  name: product.name,
+                  price: product.price,
+                  image: product.image[0]?.src,
+                  description: product.description
+                })}
+              />
             ))}
           </div>
         )}
