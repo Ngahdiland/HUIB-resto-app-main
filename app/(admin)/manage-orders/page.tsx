@@ -211,9 +211,23 @@ const ManageOrders = () => {
   };
 
   // Handle edit order save
-  const handleEditSave = (updatedOrder) => {
-    setOrdersState(prev => prev.map(o => o.id === updatedOrder.id ? updatedOrder : o));
-    setEditOrder(null);
+  const handleEditSave = async (updatedOrder) => {
+    try {
+      const res = await fetch('/api/orders/update-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: updatedOrder.id, status: updatedOrder.status }),
+      });
+      const data = await res.json();
+      if (res.status === 200 && data.order) {
+        setOrdersState(prev => prev.map(o => o.id === updatedOrder.id ? { ...o, ...updatedOrder } : o));
+        setEditOrder(null);
+      } else {
+        alert(data.error || 'Failed to update order.');
+      }
+    } catch (error) {
+      alert('Failed to update order.');
+    }
   };
 
   // Handle delete order confirm
@@ -372,7 +386,12 @@ const ManageOrders = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap font-bold text-red-600">{order.total} FCFA</td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  {['pending','preparing','delivering'].includes(order.status) ? (
+                  {['delivered', 'cancelled'].includes(order.status) ? (
+                    <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
+                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
+                      <FaLock className="ml-2 text-gray-400" title="Order is locked and cannot be updated" />
+                    </span>
+                  ) : (
                     <select
                       value={order.status}
                       onChange={e => handleStatusUpdate(order.id, e.target.value)}
@@ -381,14 +400,9 @@ const ManageOrders = () => {
                       <option value="pending">Pending</option>
                       <option value="preparing">Preparing</option>
                       <option value="delivering">Delivering</option>
+                      <option value="delivered">Delivered</option>
+                      <option value="cancelled">Cancelled</option>
                     </select>
-                  ) : (
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                      {order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : 'N/A'}
-                      {['delivered','cancelled'].includes(order.status) && (
-                        <FaLock className="inline ml-2 text-gray-400" title="Order is locked and cannot be updated" />
-                      )}
-                    </span>
                   )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -403,7 +417,16 @@ const ManageOrders = () => {
                   <button className="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors mr-2" onClick={() => setViewOrder(order)}>
                     <FaEye />
                   </button>
-                  <button className="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700 transition-colors mr-2" onClick={() => setEditOrder(order)}>
+                  <button 
+                    className={`px-3 py-1 rounded text-xs transition-colors mr-2 ${
+                      ['delivered', 'cancelled'].includes(order.status) 
+                        ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
+                        : 'bg-green-600 text-white hover:bg-green-700'
+                    }`} 
+                    onClick={() => !['delivered', 'cancelled'].includes(order.status) && setEditOrder(order)}
+                    disabled={['delivered', 'cancelled'].includes(order.status)}
+                    title={['delivered', 'cancelled'].includes(order.status) ? 'Order is locked and cannot be edited' : 'Edit order'}
+                  >
                     <FaEdit />
                   </button>
                   <button className="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 transition-colors" onClick={() => setDeleteOrder(order)}>
@@ -484,34 +507,50 @@ const ManageOrders = () => {
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
           <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg">
             <h2 className="text-xl font-bold mb-4">Edit Order</h2>
-            <form onSubmit={e => {e.preventDefault(); handleEditSave(editOrder);}}>
-              <div className="mb-2">
-                <label className="block text-sm font-medium">Status</label>
-                <select className="w-full border rounded px-2 py-1" value={editOrder.status} onChange={e => setEditOrder({...editOrder, status: e.target.value})}>
-                  <option value="pending">Pending</option>
-                  <option value="preparing">Preparing</option>
-                  <option value="delivering">Delivering</option>
-                  <option value="delivered">Delivered</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
+            {['delivered', 'cancelled'].includes(editOrder.status) ? (
+              <div className="text-center py-8">
+                <FaLock className="mx-auto text-gray-400 text-4xl mb-4" />
+                <h3 className="text-lg font-semibold text-gray-700 mb-2">Order is Locked</h3>
+                <p className="text-gray-500 mb-4">
+                  This order has been {editOrder.status} and cannot be edited.
+                </p>
+                <button 
+                  className="px-4 py-2 bg-gray-200 rounded" 
+                  onClick={() => setEditOrder(null)}
+                >
+                  Close
+                </button>
               </div>
-              <div className="mb-2">
-                <label className="block text-sm font-medium">Payment Status</label>
-                <select className="w-full border rounded px-2 py-1" value={editOrder.paymentStatus} onChange={e => setEditOrder({...editOrder, paymentStatus: e.target.value})}>
-                  <option value="paid">Paid</option>
-                  <option value="pending">Pending</option>
-                  <option value="failed">Failed</option>
-                </select>
-              </div>
-              <div className="mb-2">
-                <label className="block text-sm font-medium">Delivery Date</label>
-                <input type="text" className="w-full border rounded px-2 py-1" value={editOrder.deliveryDate || ''} onChange={e => setEditOrder({...editOrder, deliveryDate: e.target.value})} />
-              </div>
-              <div className="flex justify-end mt-4">
-                <button type="button" className="px-4 py-2 bg-gray-200 rounded mr-2" onClick={() => setEditOrder(null)}>Cancel</button>
-                <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded">Save</button>
-              </div>
-            </form>
+            ) : (
+              <form onSubmit={e => {e.preventDefault(); handleEditSave(editOrder);}}>
+                <div className="mb-2">
+                  <label className="block text-sm font-medium">Status</label>
+                  <select className="w-full border rounded px-2 py-1" value={editOrder.status} onChange={e => setEditOrder({...editOrder, status: e.target.value})}>
+                    <option value="pending">Pending</option>
+                    <option value="preparing">Preparing</option>
+                    <option value="delivering">Delivering</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </div>
+                <div className="mb-2">
+                  <label className="block text-sm font-medium">Payment Status</label>
+                  <select className="w-full border rounded px-2 py-1" value={editOrder.paymentStatus} onChange={e => setEditOrder({...editOrder, paymentStatus: e.target.value})}>
+                    <option value="paid">Paid</option>
+                    <option value="pending">Pending</option>
+                    <option value="failed">Failed</option>
+                  </select>
+                </div>
+                <div className="mb-2">
+                  <label className="block text-sm font-medium">Delivery Date</label>
+                  <input type="text" className="w-full border rounded px-2 py-1" value={editOrder.deliveryDate || ''} onChange={e => setEditOrder({...editOrder, deliveryDate: e.target.value})} />
+                </div>
+                <div className="flex justify-end mt-4">
+                  <button type="button" className="px-4 py-2 bg-gray-200 rounded mr-2" onClick={() => setEditOrder(null)}>Cancel</button>
+                  <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded">Save</button>
+                </div>
+              </form>
+            )}
           </div>
         </div>
       )}

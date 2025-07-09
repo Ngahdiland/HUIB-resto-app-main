@@ -15,8 +15,9 @@
       }
     ],
     "total": 6107,
-    "status": "pending",
-    "date": "2025-07-09T13:35:38.055Z"
+    "status": "delivered",
+    "date": "2025-07-09T13:35:38.055Z",
+    "deliveryDate": "2025-07-09T21:15:45.947Z"
   },
   {
     "id": "ORD-1752068961697",
@@ -87,7 +88,7 @@
       }
     ],
     "total": 4811,
-    "status": "pending",
+    "status": "cancelled",
     "date": "2025-07-09T14:25:23.180Z"
   },
   {
@@ -130,8 +131,9 @@
       }
     ],
     "total": 6863,
-    "status": "pending",
-    "date": "2025-07-09T14:27:24.328Z"
+    "status": "delivered",
+    "date": "2025-07-09T14:27:24.328Z",
+    "deliveryDate": "2025-07-09T21:17:07.171Z"
   },
   {
     "id": "ORD-1752071573990",
@@ -267,5 +269,24 @@
     "total": 11291,
     "status": "pending",
     "date": "2025-07-09T20:54:03.000Z"
+  },
+  {
+    "id": "ORD-1752094882816",
+    "email": "fonyuydiland@gmail.com",
+    "items": [
+      {
+        "name": "Bongo Chobi (Beti)",
+        "quantity": 1,
+        "price": 2100
+      },
+      {
+        "name": "Corn Fufu and Njama Njama (Kom and Nso)",
+        "quantity": 1,
+        "price": 1800
+      }
+    ],
+    "total": 4811,
+    "status": "pending",
+    "date": "2025-07-09T21:01:22.816Z"
   }
 ]

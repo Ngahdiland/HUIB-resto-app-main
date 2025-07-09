@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaUsers, FaShoppingCart, FaDollarSign, FaStar, FaArrowUp, FaArrowDown, FaChartLine, FaChartBar, FaChartPie, FaDownload } from 'react-icons/fa';
 import {
   Chart as ChartJS,
@@ -33,145 +33,83 @@ ChartJS.register(
 const Dashboard = () => {
   const [selectedMetric, setSelectedMetric] = useState('revenue');
   const [timeRange, setTimeRange] = useState('7d');
+  const [dashboardData, setDashboardData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Sample data - replace with real API calls
-  const stats = [
+  // Fetch dashboard data
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/dashboard/stats');
+        if (response.ok) {
+          const data = await response.json();
+          setDashboardData(data);
+        } else {
+          console.error('Failed to fetch dashboard data');
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
+
+  // Calculate stats from real data
+  const stats = dashboardData ? [
     {
       title: 'Total Orders',
-      value: '1,234',
-      change: '+8.2%',
+      value: dashboardData.stats.totalOrders.toLocaleString(),
+      change: '+0%', // Could calculate trend if needed
       trend: 'up',
       icon: <FaShoppingCart className="text-2xl" />,
       color: 'bg-green-500'
     },
     {
-      title: 'Revenue',
-      value: '45,678 FCFA',
-      change: '+15.3%',
+      title: 'Total Revenue',
+      value: `${dashboardData.stats.totalRevenue.toLocaleString()} FCFA`,
+      change: '+0%', // Could calculate trend if needed
       trend: 'up',
       icon: <FaDollarSign className="text-2xl" />,
       color: 'bg-yellow-500'
     },
     {
-      title: 'Avg Rating',
-      value: '4.8',
-      change: '+0.2',
+      title: 'Total Users',
+      value: dashboardData.stats.totalUsers.toString(),
+      change: '+0%', // Could calculate trend if needed
       trend: 'up',
-      icon: <FaStar className="text-2xl" />,
+      icon: <FaUsers className="text-2xl" />,
+      color: 'bg-blue-500'
+    },
+    {
+      title: 'Avg Order Value',
+      value: `${Math.round(dashboardData.stats.avgOrderValue).toLocaleString()} FCFA`,
+      change: '+0%', // Could calculate trend if needed
+      trend: 'up',
+      icon: <FaDollarSign className="text-2xl" />,
       color: 'bg-purple-500'
     }
-  ];
+  ] : [];
 
-  const recentOrders = [
-    {
-      id: 'ORD-001',
-      customer: 'John Doe',
-      items: 3,
-      total: 45.99,
-      status: 'delivered',
-      date: '2024-01-15 14:30'
-    },
-    {
-      id: 'ORD-002',
-      customer: 'Jane Smith',
-      items: 2,
-      total: 32.50,
-      status: 'preparing',
-      date: '2024-01-15 13:45'
-    },
-    {
-      id: 'ORD-003',
-      customer: 'Mike Johnson',
-      items: 4,
-      total: 67.25,
-      status: 'pending',
-      date: '2024-01-15 13:20'
-    },
-    {
-      id: 'ORD-004',
-      customer: 'Sarah Wilson',
-      items: 1,
-      total: 18.99,
-      status: 'delivering',
-      date: '2024-01-15 12:55'
-    }
-  ];
+  const recentOrders = dashboardData?.recentOrders || [];
 
-  const topProducts = [
-    { name: 'Pizza Margherita', sales: 156, revenue: 2028.00 },
-    { name: 'Burger Deluxe', sales: 142, revenue: 1418.58 },
-    { name: 'Sushi Platter', sales: 98, revenue: 1960.02 },
-    { name: 'Pasta Carbonara', sales: 87, revenue: 1042.13 },
-    { name: 'Chicken Wings', sales: 76, revenue: 683.24 }
-  ];
+  const topProducts = dashboardData?.topProducts || [];
 
-  // Chart data (simulate dates for filtering)
-  const today = new Date('2024-01-15T23:59:59'); // Simulated 'now' for demo
-  const chartDataRaw = [
-    { date: '2024-01-01', revenue: 1200, orders: 45 },
-    { date: '2024-01-02', revenue: 1350, orders: 52 },
-    { date: '2024-01-03', revenue: 980, orders: 38 },
-    { date: '2024-01-04', revenue: 1650, orders: 62 },
-    { date: '2024-01-05', revenue: 1420, orders: 55 },
-    { date: '2024-01-06', revenue: 1890, orders: 71 },
-    { date: '2024-01-07', revenue: 2100, orders: 78 },
-    { date: '2024-01-08', revenue: 1850, orders: 68 },
-    { date: '2024-01-09', revenue: 2200, orders: 82 },
-    { date: '2024-01-10', revenue: 1950, orders: 73 },
-    { date: '2024-01-11', revenue: 2400, orders: 89 },
-    { date: '2024-01-12', revenue: 2100, orders: 78 },
-    { date: '2024-01-13', revenue: 1800, orders: 67 },
-    { date: '2024-01-14', revenue: 2300, orders: 85 },
-    { date: '2024-01-15', revenue: 2500, orders: 90 },
-  ];
+  // Chart data from real data
+  const chartData = dashboardData?.revenueTrend || [];
 
-  // Helper to filter by time range
-  function filterByTimeRange<T extends Record<string, any>>(data: T[], dateKey: string = 'date'): T[] {
-    let cutoff;
-    switch (timeRange) {
-      case '24h':
-        cutoff = new Date(today);
-        cutoff.setDate(today.getDate() - 1);
-        break;
-      case '7d':
-        cutoff = new Date(today);
-        cutoff.setDate(today.getDate() - 7);
-        break;
-      case '30d':
-        cutoff = new Date(today);
-        cutoff.setDate(today.getDate() - 30);
-        break;
-      case '1y':
-        cutoff = new Date(today);
-        cutoff.setFullYear(today.getFullYear() - 1);
-        break;
-      case 'all':
-      default:
-        return data;
-    }
-    return data.filter((item: T) => new Date(item[dateKey]) > cutoff);
-  }
+  // Order status data from real data
+  const orderStatusData = dashboardData?.orderStatusCounts ? 
+    Object.entries(dashboardData.orderStatusCounts).map(([status, count]: [string, any]) => ({
+      status: status.charAt(0).toUpperCase() + status.slice(1),
+      count,
+      percentage: Math.round((count / dashboardData.stats.totalOrders) * 100)
+    })) : [];
 
-  const chartData = filterByTimeRange(chartDataRaw);
-
-  const orderStatusDataRaw = [
-    { status: 'Delivered', count: 892, percentage: 72 },
-    { status: 'In Transit', count: 156, percentage: 13 },
-    { status: 'Preparing', count: 98, percentage: 8 },
-    { status: 'Pending', count: 88, percentage: 7 }
-  ];
-  // For demo, just use the same data, but in real app, filter by timeRange
-  const orderStatusData = orderStatusDataRaw;
-
-  const peakHoursData = [
-    { hour: '12:00 PM', orders: 45 },
-    { hour: '1:00 PM', orders: 52 },
-    { hour: '2:00 PM', orders: 38 },
-    { hour: '6:00 PM', orders: 62 },
-    { hour: '7:00 PM', orders: 71 },
-    { hour: '8:00 PM', orders: 78 },
-    { hour: '9:00 PM', orders: 65 }
-  ];
+  const peakHoursData = dashboardData?.peakHoursData || [];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -185,11 +123,11 @@ const Dashboard = () => {
 
   // Chart configurations
   const revenueChartData = {
-    labels: chartData.map(item => item.date),
+    labels: chartData.map((item: any) => item.date),
     datasets: [
       {
         label: selectedMetric === 'revenue' ? 'Revenue (FCFA)' : 'Orders',
-        data: chartData.map(item => 
+        data: chartData.map((item: any) => 
           selectedMetric === 'revenue' ? item.revenue : item.orders
         ),
         borderColor: '#DC2626',
@@ -266,10 +204,10 @@ const Dashboard = () => {
   };
 
   const orderStatusChartData = {
-    labels: orderStatusData.map(item => item.status),
+    labels: orderStatusData.map((item: any) => item.status),
     datasets: [
       {
-        data: orderStatusData.map(item => item.percentage),
+        data: orderStatusData.map((item: any) => item.percentage),
         backgroundColor: [
           '#10B981', // Green
           '#3B82F6', // Blue
@@ -320,11 +258,11 @@ const Dashboard = () => {
   };
 
   const peakHoursChartData = {
-    labels: peakHoursData.map(item => item.hour),
+    labels: peakHoursData.map((item: any) => item.hour),
     datasets: [
       {
         label: 'Orders',
-        data: peakHoursData.map(item => item.orders),
+        data: peakHoursData.map((item: any) => item.orders),
         backgroundColor: 'rgba(220, 38, 38, 0.8)',
         borderColor: '#DC2626',
         borderWidth: 2,
@@ -389,20 +327,28 @@ const Dashboard = () => {
     { id: 3, name: 'Mike Johnson', email: 'mike@example.com', role: 'User', status: 'inactive' },
   ];
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-lg text-gray-600">Loading dashboard data...</div>
+      </div>
+    );
+  }
+
   // Generate CSV report
   function handleGenerateReport() {
     let csv = '';
     // Revenue/Orders Chart Data
     csv += `Dashboard Analysis (${timeRange === 'all' ? 'All time' : timeRange})\n`;
     csv += 'Date,Revenue,Orders\n';
-    chartData.forEach(row => {
+    chartData.forEach((row: any) => {
       csv += `${row.date},${row.revenue},${row.orders}\n`;
     });
     csv += '\n';
     // Top Products (static for demo)
     csv += 'Top Products\n';
     csv += 'Product,Sales,Revenue\n';
-    topProducts.forEach(p => {
+    topProducts.forEach((p: any) => {
       csv += `${p.name},${p.sales},${p.revenue}\n`;
     });
     csv += '\n';
@@ -533,7 +479,7 @@ const Dashboard = () => {
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Top Selling Products</h3>
           <div className="space-y-4">
-            {topProducts.map((product, index) => (
+                            {topProducts.map((product: any, index: number) => (
               <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center">
                   <div className="w-8 h-8 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-sm font-semibold mr-3">
@@ -588,7 +534,7 @@ const Dashboard = () => {
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {recentOrders.map((order) => (
+                              {recentOrders.map((order: any) => (
                 <tr key={order.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                     {order.id}
