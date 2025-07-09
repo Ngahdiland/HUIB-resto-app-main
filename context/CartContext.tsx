@@ -27,19 +27,57 @@ const CART_STORAGE_KEY = 'huib_cart';
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [cart, setCart] = useState<{ [id: string]: CartItem }>({});
+  const [userEmail, setUserEmail] = useState<string | null>(null);
 
-  // Load cart from localStorage on mount
+  // Helper to get cart key for user
+  const getCartKey = (email: string) => `cart_${email}`;
+
+  // Load user email from localStorage
   useEffect(() => {
-    const stored = localStorage.getItem(CART_STORAGE_KEY);
-    if (stored) {
-      setCart(JSON.parse(stored));
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const user = JSON.parse(storedUser);
+      setUserEmail(user.email);
+    } else {
+      setUserEmail(null);
     }
   }, []);
 
-  // Save cart to localStorage whenever it changes
+  // Load cart for user on mount or when userEmail changes
   useEffect(() => {
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
-  }, [cart]);
+    if (userEmail) {
+      const stored = localStorage.getItem(getCartKey(userEmail));
+      if (stored) {
+        setCart(JSON.parse(stored));
+      } else {
+        setCart({});
+      }
+    } else {
+      setCart({});
+    }
+  }, [userEmail]);
+
+  // Save cart to localStorage whenever it changes and userEmail is set
+  useEffect(() => {
+    if (userEmail) {
+      localStorage.setItem(getCartKey(userEmail), JSON.stringify(cart));
+    }
+  }, [cart, userEmail]);
+
+  // Listen for login/logout (user change) in other tabs
+  useEffect(() => {
+    const handleStorage = () => {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        setUserEmail(user.email);
+      } else {
+        setUserEmail(null);
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
 
   const addToCart = (product: CartProduct) => {
     setCart(prev => {

@@ -24,6 +24,9 @@ export default function AuthPage() {
       });
       const data = await res.json();
       if (res.status === 200) {
+        if (data.user) {
+          localStorage.setItem('user', JSON.stringify(data.user));
+        }
         if (loginEmail.trim().toLowerCase() === 'fonyuydiland@gmail.com') {
           router.push('/dashboard');
         } else {

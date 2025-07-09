@@ -34,6 +34,10 @@ export default function RegisterPage() {
           body: JSON.stringify({ email, password }),
         });
         if (loginRes.status === 200) {
+          const loginData = await loginRes.json();
+          if (loginData.user) {
+            localStorage.setItem('user', JSON.stringify(loginData.user));
+          }
           if (email.trim().toLowerCase() === 'fonyuydiland@gmail.com') {
             window.location.href = '/dashboard';
           } else {

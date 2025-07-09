@@ -24,7 +24,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Wrong email or password.' }, { status: 401 });
     }
 
-    return NextResponse.json({ message: 'Login successful.' }, { status: 200 });
+    // Exclude password from response
+    const { password: _pw, ...userWithoutPassword } = user;
+    return NextResponse.json({ message: 'Login successful.', user: userWithoutPassword }, { status: 200 });
   } catch (error) {
     return NextResponse.json({ error: 'Server error.' }, { status: 500 });
   }

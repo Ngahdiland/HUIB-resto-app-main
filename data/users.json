@@ -4,7 +4,7 @@
     "email": "ngahdiland@gmail.com",
     "phone": "677828170",
     "password": "Ngah@50",
-    "address": "molyko",
+    "address": "Bamenda",
     "region": "North-West"
   },
   {
@@ -14,5 +14,13 @@
     "password": "ElNgah@50",
     "address": "admin office",
     "region": "Centre"
+  },
+  {
+    "name": "Mussongong Ruth",
+    "email": "Ruth@gmail.com",
+    "phone": "6778303573",
+    "password": "Ruth@50",
+    "address": "Douala",
+    "region": "Littoral"
   }
 ]

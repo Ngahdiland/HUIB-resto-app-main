@@ -3,13 +3,12 @@ import React, { useState, useEffect } from 'react';
 import { FaEdit, FaSave, FaTimes, FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaClock, FaCheck, FaTruck } from 'react-icons/fa';
 
 interface User {
-  id: string;
+  id?: string;
   name: string;
   email: string;
   phone: string;
   address: string;
-  city: string;
-  zipCode: string;
+  region: string;
 }
 
 interface Order {
@@ -40,98 +39,51 @@ const Profile = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('profile');
 
-  // Sample user data
-  const sampleUser: User = {
-    id: '1',
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    phone: '+1 (555) 123-4567',
-    address: '123 Main Street',
-    city: 'New York',
-    zipCode: '10001'
-  };
-
-  // Sample orders data
-  const sampleOrders: Order[] = [
-    {
-      id: 'ORD-001',
-      date: '2024-01-15',
-      status: 'delivered',
-      total: 45.97,
-      items: [
-        { name: 'Pizza Margherita', quantity: 2, price: 12.99 },
-        { name: 'Burger Deluxe', quantity: 1, price: 9.99 },
-        { name: 'Sushi Platter', quantity: 1, price: 19.99 }
-      ]
-    },
-    {
-      id: 'ORD-002',
-      date: '2024-01-10',
-      status: 'delivered',
-      total: 32.98,
-      items: [
-        { name: 'Pasta Carbonara', quantity: 1, price: 11.99 },
-        { name: 'Caesar Salad', quantity: 1, price: 7.99 },
-        { name: 'Chocolate Cake', quantity: 1, price: 5.99 }
-      ]
-    },
-    {
-      id: 'ORD-003',
-      date: '2024-01-05',
-      status: 'preparing',
-      total: 28.97,
-      items: [
-        { name: 'Chicken Wings', quantity: 1, price: 8.99 },
-        { name: 'Steak Fajitas', quantity: 1, price: 16.99 }
-      ]
-    }
-  ];
-
-  // Sample transactions data
-  const sampleTransactions: Transaction[] = [
-    {
-      id: 'TXN-001',
-      date: '2024-01-15',
-      amount: 45.97,
-      type: 'payment',
-      description: 'Payment for order ORD-001'
-    },
-    {
-      id: 'TXN-002',
-      date: '2024-01-10',
-      amount: 32.98,
-      type: 'payment',
-      description: 'Payment for order ORD-002'
-    },
-    {
-      id: 'TXN-003',
-      date: '2024-01-08',
-      amount: 15.99,
-      type: 'refund',
-      description: 'Refund for cancelled order'
-    }
-  ];
-
   useEffect(() => {
-    // Simulate API call
-    setTimeout(() => {
-      setUser(sampleUser);
-      setOrders(sampleOrders);
-      setTransactions(sampleTransactions);
-      setLoading(false);
-    }, 1000);
+    // Load user from localStorage
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+      setUser(parsedUser);
+      // Fetch orders for this user
+      fetch(`/api/orders/user?email=${encodeURIComponent(parsedUser.email)}`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.orders) setOrders(data.orders);
+        });
+    }
+    setLoading(false);
   }, []);
 
-  const handleSaveProfile = () => {
-    // TODO: Implement save profile logic
-    console.log('Saving profile:', user);
-    setIsEditing(false);
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    try {
+      const res = await fetch('/api/user/update', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(user),
+      });
+      const data = await res.json();
+      if (res.status === 200 && data.user) {
+        setUser(data.user);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        setIsEditing(false);
+        alert('Profile updated!');
+      } else {
+        alert(data.error || 'Failed to update profile.');
+      }
+    } catch (err) {
+      alert('Server error.');
+    }
   };
 
   const handleCancelEdit = () => {
     setIsEditing(false);
     // Reset user data to original
-    setUser(sampleUser);
+    const storedUser = localStorage.getItem('user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -309,21 +261,11 @@ const Profile = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">City</label>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">Region</label>
                 <input
                   type="text"
-                  value={user.city}
-                  onChange={(e) => setUser(prev => prev ? { ...prev, city: e.target.value } : null)}
-                  disabled={!isEditing}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-2">ZIP Code</label>
-                <input
-                  type="text"
-                  value={user.zipCode}
-                  onChange={(e) => setUser(prev => prev ? { ...prev, zipCode: e.target.value } : null)}
+                  value={user.region}
+                  onChange={(e) => setUser(prev => prev ? { ...prev, region: e.target.value } : null)}
                   disabled={!isEditing}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 disabled:bg-gray-100"
                 />

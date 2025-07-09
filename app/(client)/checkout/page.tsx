@@ -82,25 +82,34 @@ const Checkout = () => {
     }
   };
 
-  // Save order to localStorage
-  const handleSubmitPayment = (e: React.FormEvent) => {
+  // Save order to backend
+  const handleSubmitPayment = async (e: React.FormEvent) => {
     e.preventDefault();
-    const id = 'order-' + Date.now();
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (!user) {
+      alert('You must be logged in to place an order.');
+      return;
+    }
     const order = {
-      id,
-      userInfo,
-      items: checkoutItems,
+      email: user.email,
+      items: checkoutItems.map(item => ({
+        name: item.product.name,
+        quantity: item.quantity,
+        price: item.product.price,
+      })),
       total: getTotal(),
-      receipt: receiptPreview, // just preview for now
-      status: 'pending',
-      createdAt: new Date().toISOString(),
     };
-    const orders = JSON.parse(localStorage.getItem(ORDERS_KEY) || '[]');
-    orders.push(order);
-    localStorage.setItem(ORDERS_KEY, JSON.stringify(orders));
-    setOrderPlaced(true);
-    setOrderId(id);
-    clearCart();
+    const res = await fetch('/api/orders/new', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(order),
+    });
+    if (res.status === 201) {
+      setOrderPlaced(true);
+      clearCart();
+    } else {
+      alert('Failed to place order.');
+    }
   };
 
   // Admin: approve order

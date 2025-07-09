@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { FaShoppingCart, FaBars, FaTimes } from 'react-icons/fa';
+import { FaShoppingCart, FaBars, FaTimes, FaUserCircle } from 'react-icons/fa';
 
 const navLinks = [
   { href: '/', label: 'Home' },
@@ -20,6 +20,7 @@ const Navbar = () => {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string>('');
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   // Scrollspy effect
   useEffect(() => {
@@ -48,6 +49,11 @@ const Navbar = () => {
   const handleNavClick = (section?: string) => {
     if (section) setActiveSection(section);
     setIsMobileMenuOpen(false);
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    window.location.href = '/login';
   };
 
   const linkClass = (href: string, section?: string) => {
@@ -107,19 +113,25 @@ const Navbar = () => {
       </div>
 
       {/* Desktop Right Links */}
-      <div className="hidden md:flex gap-4">
-        {rightLinks.map(link => (
-          <Link
-            key={link.href}
-            href={link.href}
-            className={linkClass(link.href)}
-          >
-            <span className="relative z-10">{link.label}</span>
-            {linkClass(link.href).includes('active-link') && (
-              <span className="absolute left-0 right-0 -bottom-1 h-0.5 bg-red-500 rounded transition-all duration-300 animate-active-line" />
-            )}
-          </Link>
-        ))}
+      <div className="hidden md:flex gap-4 items-center relative">
+        <button
+          className="flex items-center gap-2 text-red-600 hover:text-red-700 focus:outline-none"
+          onClick={() => setShowProfileMenu(v => !v)}
+          onBlur={() => setTimeout(() => setShowProfileMenu(false), 150)}
+        >
+          <FaUserCircle size={22} />
+          <span>Profile</span>
+        </button>
+        {showProfileMenu && (
+          <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded shadow-lg z-50">
+            <Link href="/profile" className="block px-4 py-2 hover:bg-red-50 text-gray-700" onClick={() => setShowProfileMenu(false)}>
+              View Profile
+            </Link>
+            <button className="block w-full text-left px-4 py-2 hover:bg-red-50 text-gray-700" onClick={handleLogout}>
+              Logout
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Mobile Menu Button */}
@@ -157,16 +169,26 @@ const Navbar = () => {
 
               {/* Mobile Right Links */}
               <div className="border-t border-gray-200 pt-4 space-y-2">
-                {rightLinks.map(link => (
-                  <Link
-                    key={link.href}
-                    href={link.href}
-                    className={mobileLinkClass(link.href)}
-                    onClick={toggleMobileMenu}
-                  >
-                    {typeof link.label === 'string' ? link.label : 'Profile'}
-                  </Link>
-                ))}
+                <button
+                  className="flex items-center gap-2 text-red-600 hover:text-red-700 w-full px-4 py-2"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    window.location.href = '/profile';
+                  }}
+                >
+                  <FaUserCircle size={20} />
+                  View Profile
+                </button>
+                <button
+                  className="flex items-center gap-2 text-red-600 hover:text-red-700 w-full px-4 py-2"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    localStorage.removeItem('user');
+                    window.location.href = '/login';
+                  }}
+                >
+                  Logout
+                </button>
               </div>
             </div>
           </div>
