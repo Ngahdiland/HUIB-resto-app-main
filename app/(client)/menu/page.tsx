@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { FaSearch, FaFilter, FaStar, FaShoppingCart } from 'react-icons/fa';
 import ProductCard from '@/components/ProductCard';
+import { useCart } from '../../../context/CartContext';
+import { useRouter } from 'next/navigation';
 
 interface Product {
   id: string;
@@ -20,8 +22,9 @@ const Menu = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sortBy, setSortBy] = useState('name');
-  const [cart, setCart] = useState<{ [key: string]: number }>({});
   const [loading, setLoading] = useState(true);
+  const { cart, addToCart, removeFromCart, clearCart } = useCart();
+  const router = useRouter();
 
   const categories = [
     { value: 'all', label: 'All Regions' },
@@ -184,34 +187,12 @@ const Menu = () => {
     setFilteredProducts(filtered);
   }, [products, searchTerm, selectedCategory, sortBy]);
 
-  const addToCart = (productId: string) => {
-    setCart(prev => ({
-      ...prev,
-      [productId]: (prev[productId] || 0) + 1
-    }));
-  };
-
-  const removeFromCart = (productId: string) => {
-    setCart(prev => {
-      const newCart = { ...prev };
-      if (newCart[productId] > 1) {
-        newCart[productId] -= 1;
-      } else {
-        delete newCart[productId];
-      }
-      return newCart;
-    });
-  };
-
   const getCartItemCount = () => {
-    return Object.values(cart).reduce((sum, count) => sum + count, 0);
+    return Object.values(cart).reduce((sum, item) => sum + item.quantity, 0);
   };
 
   const getCartTotal = () => {
-    return Object.entries(cart).reduce((total, [productId, count]) => {
-      const product = products.find(p => p.id === productId);
-      return total + (product?.price || 0) * count;
-    }, 0);
+    return Object.values(cart).reduce((total, item) => total + (item.product.price * item.quantity), 0);
   };
 
   if (loading) {
@@ -246,7 +227,7 @@ const Menu = () => {
                   className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 />
               </div>
-              <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors relative">
+              <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors relative" onClick={() => router.push('/cart')}>
                 <FaShoppingCart className="inline mr-2" />
                 Cart ({getCartItemCount()})
               </button>
@@ -325,7 +306,7 @@ const Menu = () => {
                   <div className="flex justify-between items-center">
                     <span className="text-xl font-bold text-red-600">{product.price} FCFA</span>
                     <div className="flex items-center gap-2">
-                      {cart[product.id] > 0 && (
+                      {cart[product.id]?.quantity > 0 && (
                         <button
                           onClick={() => removeFromCart(product.id)}
                           className="bg-gray-200 text-gray-700 w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-300 transition-colors"
@@ -333,11 +314,17 @@ const Menu = () => {
                           -
                         </button>
                       )}
-                      {cart[product.id] > 0 && (
-                        <span className="text-sm font-semibold">{cart[product.id]}</span>
+                      {cart[product.id]?.quantity > 0 && (
+                        <span className="text-sm font-semibold">{cart[product.id].quantity}</span>
                       )}
                       <button
-                        onClick={() => addToCart(product.id)}
+                        onClick={() => addToCart({
+                          id: product.id,
+                          name: product.name,
+                          price: product.price,
+                          image: product.image,
+                          description: product.description
+                        })}
                         disabled={product.stock === 0}
                         className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                       >
@@ -367,12 +354,12 @@ const Menu = () => {
               </div>
               <div className="flex gap-4">
                 <button
-                  onClick={() => setCart({})}
+                  onClick={clearCart}
                   className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
                 >
                   Clear Cart
                 </button>
-                <button className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors">
+                <button className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors" onClick={() => router.push('/cart')}>
                   Checkout
                 </button>
               </div>

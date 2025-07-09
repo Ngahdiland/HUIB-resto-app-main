@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { FaTrash, FaArrowLeft, FaCreditCard, FaShoppingBag } from 'react-icons/fa';
+import { useCart } from '../../../context/CartContext';
+import { useRouter } from 'next/navigation';
 
 interface CartItem {
   id: string;
@@ -13,66 +15,12 @@ interface CartItem {
 }
 
 const Cart = () => {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  // Sample cart data (replace with actual cart state management)
-  const sampleCartItems: CartItem[] = [
-    {
-      id: '1',
-      name: 'Pizza Margherita',
-      price: 12.99,
-      image: '/assets/p_img1.png',
-      description: 'Fresh mozzarella, tomato sauce, and basil',
-      quantity: 2
-    },
-    {
-      id: '2',
-      name: 'Burger Deluxe',
-      price: 9.99,
-      image: '/assets/p_img2.png',
-      description: 'Juicy beef patty with fresh vegetables',
-      quantity: 1
-    },
-    {
-      id: '3',
-      name: 'Sushi Platter',
-      price: 19.99,
-      image: '/assets/p_img3.png',
-      description: 'Fresh salmon, tuna, and avocado rolls',
-      quantity: 1
-    }
-  ];
-
-  useEffect(() => {
-    // Simulate loading cart data
-    setTimeout(() => {
-      setCartItems(sampleCartItems);
-      setLoading(false);
-    }, 500);
-  }, []);
-
-  const updateQuantity = (itemId: string, newQuantity: number) => {
-    if (newQuantity <= 0) {
-      removeItem(itemId);
-      return;
-    }
-    
-    setCartItems(prev => 
-      prev.map(item => 
-        item.id === itemId 
-          ? { ...item, quantity: newQuantity }
-          : item
-      )
-    );
-  };
-
-  const removeItem = (itemId: string) => {
-    setCartItems(prev => prev.filter(item => item.id !== itemId));
-  };
+  const { cart, updateQuantity, removeFromCart, clearCart } = useCart();
+  const cartItems = Object.values(cart);
+  const router = useRouter();
 
   const getSubtotal = () => {
-    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return cartItems.reduce((total, item) => total + (item.product.price * item.quantity), 0);
   };
 
   const getTax = () => {
@@ -80,7 +28,7 @@ const Cart = () => {
   };
 
   const getDeliveryFee = () => {
-    return getSubtotal() > 50 ? 0 : 5.99; // Free delivery over $50
+    return getSubtotal() > 50000 ? 0 : 599;
   };
 
   const getTotal = () => {
@@ -91,17 +39,6 @@ const Cart = () => {
     // TODO: Implement checkout logic
     console.log('Proceeding to checkout...');
   };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-red-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading cart...</p>
-        </div>
-      </div>
-    );
-  }
 
   if (cartItems.length === 0) {
     return (
@@ -154,20 +91,20 @@ const Cart = () => {
               </div>
               <div className="divide-y">
                 {cartItems.map((item) => (
-                  <div key={item.id} className="p-6 flex gap-4">
+                  <div key={item.product.id} className="p-6 flex gap-4">
                     <img 
-                      src={item.image} 
-                      alt={item.name} 
+                      src={item.product.image} 
+                      alt={item.product.name} 
                       className="w-20 h-20 object-cover rounded-lg"
                     />
                     <div className="flex-1">
                       <div className="flex justify-between items-start mb-2">
                         <div>
-                          <h3 className="font-semibold text-gray-800">{item.name}</h3>
-                          <p className="text-sm text-gray-600">{item.description}</p>
+                          <h3 className="font-semibold text-gray-800">{item.product.name}</h3>
+                          <p className="text-sm text-gray-600">{item.product.description}</p>
                         </div>
                         <button
-                          onClick={() => removeItem(item.id)}
+                          onClick={() => removeFromCart(item.product.id)}
                           className="text-red-600 hover:text-red-800 transition-colors"
                         >
                           <FaTrash />
@@ -176,14 +113,14 @@ const Cart = () => {
                       <div className="flex justify-between items-center">
                         <div className="flex items-center gap-2">
                           <button
-                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                            onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
                             className="w-8 h-8 border border-gray-300 rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors"
                           >
                             -
                           </button>
                           <span className="w-12 text-center font-semibold">{item.quantity}</span>
                           <button
-                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                            onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
                             className="w-8 h-8 border border-gray-300 rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors"
                           >
                             +
@@ -191,10 +128,10 @@ const Cart = () => {
                         </div>
                         <div className="text-right">
                           <div className="font-semibold text-gray-800">
-                            {(item.price * item.quantity).toFixed(0)} FCFA
+                            {(item.product.price * item.quantity).toFixed(0)} FCFA
                           </div>
                           <div className="text-sm text-gray-600">
-                            {item.price.toFixed(0)} FCFA each
+                            {item.product.price.toFixed(0)} FCFA each
                           </div>
                         </div>
                       </div>
@@ -239,7 +176,7 @@ const Cart = () => {
               </div>
 
               <button
-                onClick={handleCheckout}
+                onClick={() => router.push('/checkout')}
                 className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors flex items-center justify-center gap-2"
               >
                 <FaCreditCard />
