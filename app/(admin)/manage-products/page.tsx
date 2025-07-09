@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import { FaSearch, FaFilter, FaEye, FaEdit, FaTrash, FaPlus, FaDownload, FaUpload } from 'react-icons/fa';
-import { products as importedProducts } from '@/public/assets/assets';
 
 type Product = {
   id: string;
@@ -41,8 +40,13 @@ const ManageProducts = () => {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-        // For now, using imported products, but this could be replaced with API call
-        setProducts(importedProducts);
+        const response = await fetch('/api/products');
+        if (response.ok) {
+          const data = await response.json();
+          setProducts(data.products || []);
+        } else {
+          console.error('Failed to fetch products');
+        }
       } catch (error) {
         console.error('Error fetching products:', error);
       } finally {
@@ -108,12 +112,21 @@ const ManageProducts = () => {
     
     try {
       setUpdatingProduct(deleteProduct.id);
-      // Here you would typically make an API call to delete the product
-      setProducts(products.filter(p => p.id !== deleteProduct.id));
-      setShowDeleteModal(false);
-      setDeleteProduct(null);
+      const response = await fetch(`/api/products/${deleteProduct.id}`, {
+        method: 'DELETE',
+      });
+      
+      if (response.ok) {
+        setProducts(products.filter(p => p.id !== deleteProduct.id));
+        setShowDeleteModal(false);
+        setDeleteProduct(null);
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to delete product');
+      }
     } catch (error) {
       console.error('Error deleting product:', error);
+      alert('Failed to delete product');
     } finally {
       setUpdatingProduct(null);
     }
@@ -126,11 +139,23 @@ const ManageProducts = () => {
   const handleEditSave = async (updatedProduct: Product) => {
     try {
       setUpdatingProduct(updatedProduct.id);
-      // Here you would typically make an API call to update the product
-      setProducts(products.map(p => p.id === updatedProduct.id ? updatedProduct : p));
-      setEditProduct(null);
+      const response = await fetch(`/api/products/${updatedProduct.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedProduct),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setProducts(products.map(p => p.id === updatedProduct.id ? data.product : p));
+        setEditProduct(null);
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to update product');
+      }
     } catch (error) {
       console.error('Error updating product:', error);
+      alert('Failed to update product');
     } finally {
       setUpdatingProduct(null);
     }
@@ -166,17 +191,18 @@ const ManageProducts = () => {
     const file = e.target.files?.[0];
     if (!file) return;
     const reader = new FileReader();
-    reader.onload = (event) => {
+    reader.onload = async (event) => {
       const text = event.target?.result as string;
       const lines = text.split('\n').filter(Boolean);
       const [header, ...rows] = lines;
       const keys = header.split(',');
-      const imported = rows.map(row => {
+      
+      for (const row of rows) {
         const values = row.split(',');
         const obj: any = {};
         keys.forEach((k, i) => obj[k.trim()] = values[i]?.trim());
-        return {
-          id: obj.id,
+        
+        const importedProduct = {
           name: obj.name,
           description: obj.description,
           category: obj.category,
@@ -192,25 +218,52 @@ const ManageProducts = () => {
           allergens: obj.allergens ? obj.allergens.split('|') : [],
           preparationTime: obj.preparationTime,
           calories: Number(obj.calories),
-          createdAt: obj.createdAt,
-          updatedAt: obj.updatedAt,
         };
-      });
-      setProducts(imported);
+
+        try {
+          const response = await fetch('/api/products', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(importedProduct),
+          });
+          
+          if (response.ok) {
+            const data = await response.json();
+            setProducts(prev => [data.product, ...prev]);
+          }
+        } catch (error) {
+          console.error('Error importing product:', error);
+        }
+      }
     };
     reader.readAsText(file);
   };
 
   // Add Product
-  const handleAddProduct = (e: React.FormEvent) => {
+  const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newProduct) return;
-    setProducts([
-      { ...newProduct, id: `PROD-${Date.now()}` } as Product,
-      ...products,
-    ]);
-    setShowAddModal(false);
-    setNewProduct(null);
+    
+    try {
+      const response = await fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newProduct),
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setProducts([data.product, ...products]);
+        setShowAddModal(false);
+        setNewProduct(null);
+      } else {
+        const error = await response.json();
+        alert(error.error || 'Failed to add product');
+      }
+    } catch (error) {
+      console.error('Error adding product:', error);
+      alert('Failed to add product');
+    }
   };
 
   // Clear filters

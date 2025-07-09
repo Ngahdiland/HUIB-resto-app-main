@@ -4,7 +4,6 @@ import { FaSearch, FaFilter, FaStar, FaShoppingCart } from 'react-icons/fa';
 import ProductCard from '@/components/ProductCard';
 import { useCart } from '../../../context/CartContext';
 import { useRouter } from 'next/navigation';
-import { products as importedProducts } from '@/public/assets/assets';
 
 interface Product {
   id: string;
@@ -28,14 +27,29 @@ const Menu = () => {
   const { cart, addToCart, removeFromCart, clearCart } = useCart();
   const router = useRouter();
 
-  const uniqueCategories = Array.from(new Set(importedProducts.map(p => p.category)));
-
   useEffect(() => {
-    // Use importedProducts for initialization
-    setProducts(importedProducts);
-    setFilteredProducts(importedProducts);
-    setLoading(false);
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/products');
+        if (response.ok) {
+          const data = await response.json();
+          setProducts(data.products || []);
+          setFilteredProducts(data.products || []);
+        } else {
+          console.error('Failed to fetch products');
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
   }, []);
+
+  const uniqueCategories = Array.from(new Set(products.map(p => p.category)));
 
   useEffect(() => {
     let filtered = products;
@@ -165,7 +179,7 @@ const Menu = () => {
                 key={product.id}
                 name={product.name}
                 price={product.price}
-                image={product.image[0]?.src}
+                image={product.image[0]}
                 description={product.description}
                 rating={product.rating}
                 category={product.category}
@@ -173,7 +187,7 @@ const Menu = () => {
                   id: product.id,
                   name: product.name,
                   price: product.price,
-                  image: product.image[0]?.src,
+                  image: product.image[0],
                   description: product.description
                 })}
               />
@@ -198,12 +212,15 @@ const Menu = () => {
               <div className="flex gap-4">
                 <button
                   onClick={clearCart}
-                  className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
                 >
                   Clear Cart
                 </button>
-                <button className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors" onClick={() => router.push('/cart')}>
-                  Checkout
+                <button
+                  onClick={() => router.push('/cart')}
+                  className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors"
+                >
+                  View Cart
                 </button>
               </div>
             </div>
