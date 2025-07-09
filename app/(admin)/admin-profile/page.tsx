@@ -20,13 +20,29 @@ const AdminProfile = () => {
   const [photoPreview, setPhotoPreview] = useState(profile.photo);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem(PROFILE_KEY);
-    if (stored) {
-      setProfile(JSON.parse(stored));
-      setPhotoPreview(JSON.parse(stored).photo);
-    }
+    const loadProfile = async () => {
+      try {
+        setLoading(true);
+        // Simulate loading time
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        const stored = localStorage.getItem(PROFILE_KEY);
+        if (stored) {
+          const loadedProfile = JSON.parse(stored);
+          setProfile(loadedProfile);
+          setPhotoPreview(loadedProfile.photo);
+        }
+      } catch (error) {
+        console.error('Error loading profile:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadProfile();
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,25 +60,48 @@ const AdminProfile = () => {
     }
   };
 
-  const handleSave = (e: React.FormEvent) => {
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newPassword && newPassword !== confirmPassword) {
       setMessage('Passwords do not match!');
       return;
     }
-    const updatedProfile = {
-      ...profile,
-      password: newPassword ? newPassword : profile.password,
-      photo: photoPreview,
-    };
-    localStorage.setItem(PROFILE_KEY, JSON.stringify(updatedProfile));
-    setProfile(updatedProfile);
-    setEditMode(false);
-    setNewPassword('');
-    setConfirmPassword('');
-    setMessage('Profile updated successfully!');
-    setTimeout(() => setMessage(''), 2000);
+    
+    try {
+      setSaving(true);
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      const updatedProfile = {
+        ...profile,
+        password: newPassword ? newPassword : profile.password,
+        photo: photoPreview,
+      };
+      localStorage.setItem(PROFILE_KEY, JSON.stringify(updatedProfile));
+      setProfile(updatedProfile);
+      setEditMode(false);
+      setNewPassword('');
+      setConfirmPassword('');
+      setMessage('Profile updated successfully!');
+      setTimeout(() => setMessage(''), 2000);
+    } catch (error) {
+      console.error('Error saving profile:', error);
+      setMessage('Failed to update profile. Please try again.');
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="flex items-center space-x-2">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+          <div className="text-lg text-gray-600">Loading profile...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 p-4 md:p-8 w-full">
@@ -79,6 +118,7 @@ const AdminProfile = () => {
                 className="absolute bottom-0 right-0 bg-red-600 text-white p-2 rounded-full hover:bg-red-700"
                 onClick={() => fileInputRef.current?.click()}
                 title="Change Photo"
+                disabled={saving}
               >
                 <svg width="18" height="18" fill="currentColor" viewBox="0 0 20 20"><path d="M4 16v2h2l7.293-7.293-2-2L4 16zm13.707-9.293a1 1 0 0 0-1.414 0l-1.586 1.586 2 2 1.586-1.586a1 1 0 0 0 0-1.414l-1.586-1.586z"/></svg>
               </button>
@@ -89,6 +129,7 @@ const AdminProfile = () => {
               ref={fileInputRef}
               onChange={handlePhotoChange}
               className="hidden"
+              disabled={saving}
             />
           </div>
           <h2 className="text-2xl font-bold text-gray-800 mt-4">{profile.name}</h2>
@@ -105,7 +146,7 @@ const AdminProfile = () => {
               value={profile.name}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-              disabled={!editMode}
+              disabled={!editMode || saving}
               required
             />
           </div>
@@ -117,7 +158,7 @@ const AdminProfile = () => {
               value={profile.email}
               onChange={handleChange}
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
-              disabled={!editMode}
+              disabled={!editMode || saving}
               required
             />
           </div>
@@ -132,6 +173,7 @@ const AdminProfile = () => {
                   onChange={e => setNewPassword(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg mb-2"
                   placeholder="New password"
+                  disabled={saving}
                 />
                 <input
                   type="password"
@@ -140,6 +182,7 @@ const AdminProfile = () => {
                   onChange={e => setConfirmPassword(e.target.value)}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg"
                   placeholder="Confirm new password"
+                  disabled={saving}
                 />
               </>
             ) : (
@@ -156,14 +199,23 @@ const AdminProfile = () => {
               <>
                 <button
                   type="submit"
-                  className="bg-red-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors"
+                  className="bg-red-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors flex items-center gap-2"
+                  disabled={saving}
                 >
-                  Save
+                  {saving ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                      Saving...
+                    </>
+                  ) : (
+                    'Save'
+                  )}
                 </button>
                 <button
                   type="button"
                   className="text-gray-600 hover:text-gray-900 px-4 py-2"
                   onClick={() => { setEditMode(false); setNewPassword(''); setConfirmPassword(''); setPhotoPreview(profile.photo); }}
+                  disabled={saving}
                 >
                   Cancel
                 </button>

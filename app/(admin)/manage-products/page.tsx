@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaSearch, FaFilter, FaEye, FaEdit, FaTrash, FaPlus, FaDownload, FaUpload } from 'react-icons/fa';
 import { products as importedProducts } from '@/public/assets/assets';
 
@@ -29,11 +29,30 @@ const ManageProducts = () => {
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
-  const [products, setProducts] = useState<Product[]>(importedProducts);
+  const [products, setProducts] = useState<Product[]>([]);
   const [viewProduct, setViewProduct] = useState<Product | null>(null);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
   const [deleteProduct, setDeleteProduct] = useState<Product | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [updatingProduct, setUpdatingProduct] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true);
+        // For now, using imported products, but this could be replaced with API call
+        setProducts(importedProducts);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          product.description.toLowerCase().includes(searchTerm.toLowerCase());
@@ -83,19 +102,40 @@ const ManageProducts = () => {
     setDeleteProduct(product);
     setShowDeleteModal(true);
   };
-  const confirmDelete = () => {
+
+  const confirmDelete = async () => {
     if (!deleteProduct) return;
-    setProducts(products.filter(p => p.id !== deleteProduct.id));
-    setShowDeleteModal(false);
-    setDeleteProduct(null);
+    
+    try {
+      setUpdatingProduct(deleteProduct.id);
+      // Here you would typically make an API call to delete the product
+      setProducts(products.filter(p => p.id !== deleteProduct.id));
+      setShowDeleteModal(false);
+      setDeleteProduct(null);
+    } catch (error) {
+      console.error('Error deleting product:', error);
+    } finally {
+      setUpdatingProduct(null);
+    }
   };
+
   const handleEdit = (product: Product) => {
     setEditProduct(product);
   };
-  const handleEditSave = (updatedProduct: Product) => {
-    setProducts(products.map(p => p.id === updatedProduct.id ? updatedProduct : p));
-    setEditProduct(null);
+
+  const handleEditSave = async (updatedProduct: Product) => {
+    try {
+      setUpdatingProduct(updatedProduct.id);
+      // Here you would typically make an API call to update the product
+      setProducts(products.map(p => p.id === updatedProduct.id ? updatedProduct : p));
+      setEditProduct(null);
+    } catch (error) {
+      console.error('Error updating product:', error);
+    } finally {
+      setUpdatingProduct(null);
+    }
   };
+
   const handleView = (product: Product) => {
     setViewProduct(product);
   };
@@ -181,6 +221,17 @@ const ManageProducts = () => {
     setCurrentPage(1);
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="flex items-center space-x-2">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+          <div className="text-lg text-gray-600">Loading products...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -204,43 +255,12 @@ const ManageProducts = () => {
             Add Product
           </button>
         </div>
-        {/* Add Product Modal */}
-        {showAddModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-              <h2 className="text-lg font-bold mb-4 text-gray-800">Add Product</h2>
-              <form onSubmit={handleAddProduct} className="space-y-4">
-                <input type="text" placeholder="Name" className="w-full border rounded px-3 py-2" value={newProduct?.name || ''} onChange={e => setNewProduct({ ...(newProduct || {}), name: e.target.value })} required />
-                <textarea placeholder="Description" className="w-full border rounded px-3 py-2" value={newProduct?.description || ''} onChange={e => setNewProduct({ ...(newProduct || {}), description: e.target.value })} required />
-                <input type="text" placeholder="Category" className="w-full border rounded px-3 py-2" value={newProduct?.category || ''} onChange={e => setNewProduct({ ...(newProduct || {}), category: e.target.value })} required />
-                <input type="number" placeholder="Price" className="w-full border rounded px-3 py-2" value={newProduct?.price || ''} onChange={e => setNewProduct({ ...(newProduct || {}), price: Number(e.target.value) })} required />
-                <input type="number" placeholder="Original Price" className="w-full border rounded px-3 py-2" value={newProduct?.originalPrice || ''} onChange={e => setNewProduct({ ...(newProduct || {}), originalPrice: Number(e.target.value) })} required />
-                <input type="number" placeholder="Stock" className="w-full border rounded px-3 py-2" value={newProduct?.stock || ''} onChange={e => setNewProduct({ ...(newProduct || {}), stock: Number(e.target.value) })} required />
-                <input type="text" placeholder="Status" className="w-full border rounded px-3 py-2" value={newProduct?.status || ''} onChange={e => setNewProduct({ ...(newProduct || {}), status: e.target.value })} required />
-                <input type="number" placeholder="Rating" className="w-full border rounded px-3 py-2" value={newProduct?.rating || ''} onChange={e => setNewProduct({ ...(newProduct || {}), rating: Number(e.target.value) })} required />
-                <input type="number" placeholder="Reviews" className="w-full border rounded px-3 py-2" value={newProduct?.reviews || ''} onChange={e => setNewProduct({ ...(newProduct || {}), reviews: Number(e.target.value) })} required />
-                <input type="text" placeholder="Tags (comma separated)" className="w-full border rounded px-3 py-2" value={newProduct?.tags?.join(',') || ''} onChange={e => setNewProduct({ ...(newProduct || {}), tags: e.target.value.split(',').map(t => t.trim()) })} />
-                <input type="text" placeholder="Ingredients (comma separated)" className="w-full border rounded px-3 py-2" value={newProduct?.ingredients?.join(',') || ''} onChange={e => setNewProduct({ ...(newProduct || {}), ingredients: e.target.value.split(',').map(t => t.trim()) })} />
-                <input type="text" placeholder="Allergens (comma separated)" className="w-full border rounded px-3 py-2" value={newProduct?.allergens?.join(',') || ''} onChange={e => setNewProduct({ ...(newProduct || {}), allergens: e.target.value.split(',').map(t => t.trim()) })} />
-                <input type="text" placeholder="Preparation Time" className="w-full border rounded px-3 py-2" value={newProduct?.preparationTime || ''} onChange={e => setNewProduct({ ...(newProduct || {}), preparationTime: e.target.value })} />
-                <input type="number" placeholder="Calories" className="w-full border rounded px-3 py-2" value={newProduct?.calories || ''} onChange={e => setNewProduct({ ...(newProduct || {}), calories: Number(e.target.value) })} />
-                <input type="text" placeholder="Created At" className="w-full border rounded px-3 py-2" value={newProduct?.createdAt || ''} onChange={e => setNewProduct({ ...(newProduct || {}), createdAt: e.target.value })} />
-                <input type="text" placeholder="Updated At" className="w-full border rounded px-3 py-2" value={newProduct?.updatedAt || ''} onChange={e => setNewProduct({ ...(newProduct || {}), updatedAt: e.target.value })} />
-                <div className="flex justify-end gap-2 mt-4">
-                  <button type="button" className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300" onClick={() => { setShowAddModal(false); setNewProduct(null); }}>Cancel</button>
-                  <button type="submit" className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">Add</button>
-                </div>
-              </form>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Filters */}
       <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1">
             <div className="relative">
               <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
@@ -252,146 +272,95 @@ const ManageProducts = () => {
               />
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Category</label>
+          <div className="flex gap-4">
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
             >
               <option value="all">All Categories</option>
               {categories.map(category => (
                 <option key={category} value={category}>{category}</option>
               ))}
             </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
             >
               <option value="all">All Status</option>
               <option value="active">Active</option>
               <option value="inactive">Inactive</option>
               <option value="draft">Draft</option>
             </select>
-          </div>
-          <div className="flex items-end">
-            <button className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-2" onClick={handleClearFilters}>
-              <FaFilter />
-              Clear Filters
+            <button
+              onClick={handleClearFilters}
+              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              Clear
             </button>
           </div>
         </div>
       </div>
 
-      {/* Bulk Actions */}
-      {selectedProducts.length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <span className="text-sm text-blue-800">
-              {selectedProducts.length} product(s) selected
-            </span>
-            <div className="flex gap-2">
-              <button className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700 transition-colors">
-                Activate
-              </button>
-              <button className="bg-yellow-600 text-white px-3 py-1 rounded text-sm hover:bg-yellow-700 transition-colors">
-                Deactivate
-              </button>
-              <button className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors">
-                Delete
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Products Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {paginatedProducts.map((product) => (
           <div key={product.id} className="bg-white rounded-lg shadow-md overflow-hidden">
             <div className="relative">
-              <input
-                type="checkbox"
-                checked={selectedProducts.includes(product.id)}
-                onChange={(e) => handleSelectProduct(product.id, e.target.checked)}
-                className="absolute top-3 left-3 z-10 rounded border-gray-300 text-red-600 focus:ring-red-500"
-              />
               <img
-                src={product.image[0].src}
+                src={product.image[0] || '/assets/placeholder.jpg'}
                 alt={product.name}
                 className="w-full h-48 object-cover"
               />
-              <div className="absolute top-3 right-3">
-                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(product.status)}`}>
-                  {product.status.charAt(0).toUpperCase() + product.status.slice(1)}
-                </span>
+              <div className="absolute top-2 right-2">
+                <input
+                  type="checkbox"
+                  checked={selectedProducts.includes(product.id)}
+                  onChange={(e) => handleSelectProduct(product.id, e.target.checked)}
+                  className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                />
               </div>
             </div>
-            
-            <div className="p-6">
-              <div className="flex items-start justify-between mb-2">
-                <h3 className="text-lg font-semibold text-gray-800">{product.name}</h3>
-                <div className="text-right">
-                  <p className="text-lg font-bold text-red-600">{product.price} FCFA</p>
-                  {product.originalPrice > product.price && (
-                    <p className="text-sm text-gray-500 line-through">{product.originalPrice} FCFA</p>
-                  )}
-                </div>
+            <div className="p-4">
+              <div className="flex justify-between items-start mb-2">
+                <h3 className="text-lg font-semibold text-gray-800 truncate">{product.name}</h3>
+                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(product.status)}`}>
+                  {product.status}
+                </span>
               </div>
-              
-              <p className="text-sm text-gray-600 mb-3 line-clamp-2">{product.description}</p>
-              
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center">
-                  <span className="text-yellow-400">★</span>
-                  <span className="text-sm text-gray-600 ml-1">{product.rating}</span>
-                  <span className="text-sm text-gray-500 ml-1">({product.reviews})</span>
-                </div>
+              <p className="text-gray-600 text-sm mb-2 line-clamp-2">{product.description}</p>
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-lg font-bold text-red-600">{product.price} FCFA</span>
                 <span className={`text-sm font-medium ${getStockColor(product.stock)}`}>
                   Stock: {product.stock}
                 </span>
               </div>
-              
-              <div className="flex flex-wrap gap-1 mb-4">
-                {product.tags.map((tag, index) => (
-                  <span key={index} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-              
-              <div className="grid grid-cols-2 gap-2 text-xs text-gray-500 mb-4">
-                <div>
-                  <span className="font-medium">Category:</span> {product.category}
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-gray-500">{product.category}</span>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={() => handleView(product)}
+                    className="text-blue-600 hover:text-blue-900"
+                    disabled={updatingProduct === product.id}
+                  >
+                    <FaEye />
+                  </button>
+                  <button
+                    onClick={() => handleEdit(product)}
+                    className="text-green-600 hover:text-green-900"
+                    disabled={updatingProduct === product.id}
+                  >
+                    <FaEdit />
+                  </button>
+                  <button
+                    onClick={() => handleDelete(product)}
+                    className="text-red-600 hover:text-red-900"
+                    disabled={updatingProduct === product.id}
+                  >
+                    <FaTrash />
+                  </button>
                 </div>
-                <div>
-                  <span className="font-medium">Prep Time:</span> {product.preparationTime}
-                </div>
-                <div>
-                  <span className="font-medium">Calories:</span> {product.calories}
-                </div>
-                <div>
-                  <span className="font-medium">Allergens:</span> {product.allergens.length}
-                </div>
-              </div>
-              
-              <div className="flex gap-2">
-                <button onClick={() => handleView(product)} className="flex-1 bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700 transition-colors flex items-center justify-center gap-1">
-                  <FaEye />
-                  View
-                </button>
-                <button onClick={() => handleEdit(product)} className="flex-1 bg-green-600 text-white px-3 py-2 rounded text-sm hover:bg-green-700 transition-colors flex items-center justify-center gap-1">
-                  <FaEdit />
-                  Edit
-                </button>
-                <button onClick={() => handleDelete(product)} className="flex-1 bg-red-600 text-white px-3 py-2 rounded text-sm hover:bg-red-700 transition-colors flex items-center justify-center gap-1">
-                  <FaTrash />
-                  Delete
-                </button>
               </div>
             </div>
           </div>
@@ -399,89 +368,282 @@ const ManageProducts = () => {
       </div>
 
       {/* Pagination */}
-      <div className="bg-white rounded-lg shadow-md px-6 py-4">
+      {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-700">
-            Showing <span className="font-medium">{(currentPage - 1) * PRODUCTS_PER_PAGE + 1}</span> to <span className="font-medium">{Math.min(currentPage * PRODUCTS_PER_PAGE, filteredProducts.length)}</span> of{' '}
-            <span className="font-medium">{filteredProducts.length}</span> results
+            Showing {((currentPage - 1) * PRODUCTS_PER_PAGE) + 1} to {Math.min(currentPage * PRODUCTS_PER_PAGE, filteredProducts.length)} of {filteredProducts.length} results
           </div>
-          <div className="flex gap-2">
+          <div className="flex space-x-2">
             <button
-              className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              onClick={() => setCurrentPage(currentPage - 1)}
               disabled={currentPage === 1}
+              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Previous
             </button>
-            {Array.from({ length: totalPages }, (_, i) => (
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
               <button
-                key={i + 1}
-                className={`px-3 py-1 text-sm rounded ${currentPage === i + 1 ? 'bg-red-600 text-white' : 'border border-gray-300 hover:bg-gray-50'}`}
-                onClick={() => setCurrentPage(i + 1)}
+                key={page}
+                onClick={() => setCurrentPage(page)}
+                className={`px-3 py-2 text-sm font-medium rounded-lg ${
+                  currentPage === page
+                    ? 'text-white bg-red-600'
+                    : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
+                }`}
               >
-                {i + 1}
+                {page}
               </button>
             ))}
             <button
-              className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+              onClick={() => setCurrentPage(currentPage + 1)}
               disabled={currentPage === totalPages}
+              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
             </button>
           </div>
         </div>
-      </div>
+      )}
 
-      {/* View Modal */}
+      {/* View Product Modal */}
       {viewProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg">
-            <h2 className="text-xl font-bold mb-4">{viewProduct.name}</h2>
-            <img src={viewProduct.image[0].src} alt={viewProduct.name} className="w-full h-48 object-cover mb-4" />
-            <p className="mb-2">{viewProduct.description}</p>
-            <div className="mb-2">Price: <b>{viewProduct.price} FCFA</b></div>
-            <div className="mb-2">Category: {viewProduct.category}</div>
-            <div className="mb-2">Stock: {viewProduct.stock}</div>
-            <div className="mb-2">Tags: {viewProduct.tags.join(', ')}</div>
-            <div className="mb-2">Ingredients: {viewProduct.ingredients.join(', ')}</div>
-            <div className="mb-2">Allergens: {viewProduct.allergens.join(', ')}</div>
-            <div className="mb-2">Prep Time: {viewProduct.preparationTime}</div>
-            <div className="mb-2">Calories: {viewProduct.calories}</div>
-            <div className="mb-2">Created: {viewProduct.createdAt}</div>
-            <div className="mb-2">Updated: {viewProduct.updatedAt}</div>
-            <button onClick={() => setViewProduct(null)} className="mt-4 px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300">Close</button>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Product Details</h3>
+              <button
+                onClick={() => setViewProduct(null)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ×
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <strong>Name:</strong> {viewProduct.name}
+              </div>
+              <div>
+                <strong>Description:</strong> {viewProduct.description}
+              </div>
+              <div>
+                <strong>Category:</strong> {viewProduct.category}
+              </div>
+              <div>
+                <strong>Price:</strong> {viewProduct.price} FCFA
+              </div>
+              <div>
+                <strong>Stock:</strong> {viewProduct.stock}
+              </div>
+              <div>
+                <strong>Status:</strong> {viewProduct.status}
+              </div>
+              <div>
+                <strong>Rating:</strong> {viewProduct.rating}/5 ({viewProduct.reviews} reviews)
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Product Modal */}
+      {editProduct && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Edit Product</h3>
+              <button
+                onClick={() => setEditProduct(null)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ×
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input
+                  type="text"
+                  value={editProduct.name}
+                  onChange={(e) => setEditProduct({ ...editProduct, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  value={editProduct.description}
+                  onChange={(e) => setEditProduct({ ...editProduct, description: e.target.value })}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
+                <input
+                  type="number"
+                  value={editProduct.price}
+                  onChange={(e) => setEditProduct({ ...editProduct, price: Number(e.target.value) })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
+                <input
+                  type="number"
+                  value={editProduct.stock}
+                  onChange={(e) => setEditProduct({ ...editProduct, stock: Number(e.target.value) })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select
+                  value={editProduct.status}
+                  onChange={(e) => setEditProduct({ ...editProduct, status: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                >
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="draft">Draft</option>
+                </select>
+              </div>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setEditProduct(null)}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleEditSave(editProduct)}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                  disabled={updatingProduct === editProduct.id}
+                >
+                  {updatingProduct === editProduct.id ? 'Saving...' : 'Save Changes'}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
 
       {/* Delete Confirmation Modal */}
       {showDeleteModal && deleteProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-            <h2 className="text-lg font-bold mb-4 text-gray-800">Confirm Delete</h2>
-            <p>Are you sure you want to delete <b>{deleteProduct?.name}</b>?</p>
-            <div className="flex justify-end gap-2 mt-4">
-              <button onClick={() => setShowDeleteModal(false)} className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300">Cancel</button>
-              <button onClick={confirmDelete} className="px-4 py-2 rounded bg-red-600 text-white hover:bg-red-700">Delete</button>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Delete Product</h3>
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ×
+              </button>
+            </div>
+            <p className="text-gray-600 mb-4">
+              Are you sure you want to delete "{deleteProduct.name}"? This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setShowDeleteModal(false)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                disabled={updatingProduct === deleteProduct.id}
+              >
+                {updatingProduct === deleteProduct.id ? 'Deleting...' : 'Delete'}
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Edit Modal */}
-      {editProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg">
-            <h2 className="text-xl font-bold mb-4">Edit {editProduct.name}</h2>
-            <form onSubmit={e => { e.preventDefault(); handleEditSave(editProduct); }} className="space-y-4">
-              <input type="text" className="w-full border rounded px-3 py-2" value={editProduct.name} onChange={e => setEditProduct({ ...editProduct, name: e.target.value })} required />
-              <textarea className="w-full border rounded px-3 py-2" value={editProduct.description} onChange={e => setEditProduct({ ...editProduct, description: e.target.value })} required />
-              <input type="number" className="w-full border rounded px-3 py-2" value={editProduct.price} onChange={e => setEditProduct({ ...editProduct, price: Number(e.target.value) })} required />
-              <input type="number" className="w-full border rounded px-3 py-2" value={editProduct.stock} onChange={e => setEditProduct({ ...editProduct, stock: Number(e.target.value) })} required />
-              <div className="flex justify-end gap-2 mt-4">
-                <button type="button" onClick={() => setEditProduct(null)} className="px-4 py-2 rounded bg-gray-200 text-gray-700 hover:bg-gray-300">Cancel</button>
-                <button type="submit" className="px-4 py-2 rounded bg-green-600 text-white hover:bg-green-700">Save</button>
+      {/* Add Product Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Add New Product</h3>
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ×
+              </button>
+            </div>
+            <form onSubmit={handleAddProduct} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                <input
+                  type="text"
+                  value={newProduct?.name || ''}
+                  onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                <textarea
+                  value={newProduct?.description || ''}
+                  onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                <select
+                  value={newProduct?.category || ''}
+                  onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  required
+                >
+                  <option value="">Select Category</option>
+                  {categories.map(category => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
+                <input
+                  type="number"
+                  value={newProduct?.price || ''}
+                  onChange={(e) => setNewProduct({ ...newProduct, price: Number(e.target.value) })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Stock</label>
+                <input
+                  type="number"
+                  value={newProduct?.stock || ''}
+                  onChange={(e) => setNewProduct({ ...newProduct, stock: Number(e.target.value) })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  required
+                />
+              </div>
+              <div className="flex justify-end space-x-3">
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(false)}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                >
+                  Add Product
+                </button>
               </div>
             </form>
           </div>

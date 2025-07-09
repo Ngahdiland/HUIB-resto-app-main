@@ -95,14 +95,29 @@ const ManageOrders = () => {
   const [editOrder, setEditOrder] = useState(null);
   const [deleteOrder, setDeleteOrder] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const ordersPerPage = 6;
 
   useEffect(() => {
-    fetch('/api/orders/all')
-      .then(res => res.json())
-      .then(data => {
-        if (data.orders) setOrdersState(data.orders);
-      });
+    const fetchOrders = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('/api/orders/all');
+        if (response.ok) {
+          const data = await response.json();
+          if (data.orders) setOrdersState(data.orders);
+        } else {
+          console.error('Failed to fetch orders');
+        }
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchOrders();
   }, []);
 
   const getStatusColor = (status: string) => {
@@ -127,16 +142,24 @@ const ManageOrders = () => {
 
   // Add this function to update order status
   const handleStatusUpdate = async (orderId, newStatus) => {
-    const res = await fetch('/api/orders/update-status', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: orderId, status: newStatus }),
-    });
-    const data = await res.json();
-    if (res.status === 200 && data.order) {
-      setOrdersState(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
-    } else {
-      alert(data.error || 'Failed to update order status.');
+    try {
+      setUpdatingStatus(orderId);
+      const res = await fetch('/api/orders/update-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: orderId, status: newStatus }),
+      });
+      const data = await res.json();
+      if (res.status === 200 && data.order) {
+        setOrdersState(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+      } else {
+        alert(data.error || 'Failed to update order status.');
+      }
+    } catch (error) {
+      console.error('Error updating order status:', error);
+      alert('Failed to update order status.');
+    } finally {
+      setUpdatingStatus(null);
     }
   };
 
@@ -200,7 +223,7 @@ const ManageOrders = () => {
     const printWindow = window.open('', '', 'height=600,width=900');
     if (!printWindow) return;
     printWindow.document.write('<html><head><title>Print Orders</title>');
-    printWindow.document.write('<style>table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ccc;padding:8px;}th{background:#f3f3f3;}</style>');
+    printWindow.document.write('<style>body{font-family:sans-serif;} table{width:100%;border-collapse:collapse;}th,td{border:1px solid #ccc;padding:8px;}th{background:#f3f3f3;} .status-badge{padding:4px 8px;border-radius:4px;font-size:0.8em;}</style>');
     printWindow.document.write('</head><body >');
     printWindow.document.write(printContents);
     printWindow.document.write('</body></html>');
@@ -210,39 +233,48 @@ const ManageOrders = () => {
     printWindow.close();
   };
 
-  // Handle edit order save
   const handleEditSave = async (updatedOrder) => {
     try {
-      const res = await fetch('/api/orders/update-status', {
-        method: 'POST',
+      const res = await fetch('/api/orders/update', {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: updatedOrder.id, status: updatedOrder.status }),
+        body: JSON.stringify(updatedOrder),
       });
-      const data = await res.json();
-      if (res.status === 200 && data.order) {
-        setOrdersState(prev => prev.map(o => o.id === updatedOrder.id ? { ...o, ...updatedOrder } : o));
+      if (res.status === 200) {
+        setOrdersState(prev => prev.map(o => o.id === updatedOrder.id ? updatedOrder : o));
         setEditOrder(null);
       } else {
-        alert(data.error || 'Failed to update order.');
+        alert('Failed to update order.');
       }
     } catch (error) {
+      console.error('Error updating order:', error);
       alert('Failed to update order.');
     }
   };
 
-  // Handle delete order confirm
   const handleDeleteConfirm = () => {
+    if (!deleteOrder) return;
     setOrdersState(prev => prev.filter(o => o.id !== deleteOrder.id));
     setDeleteOrder(null);
   };
 
-  // Clear filters
   const handleClearFilters = () => {
     setSearchTerm('');
     setStatusFilter('all');
     setDateFilter('all');
     setCurrentPage(1);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="flex items-center space-x-2">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+          <div className="text-lg text-gray-600">Loading orders...</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -253,7 +285,7 @@ const ManageOrders = () => {
           <p className="text-gray-600">View and manage all customer orders</p>
         </div>
         <div className="flex gap-3">
-          <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2" onClick={handleExport}>
+          <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2" onClick={handleExport}>
             <FaDownload />
             Export
           </button>
@@ -266,9 +298,8 @@ const ManageOrders = () => {
 
       {/* Filters */}
       <div className="bg-white rounded-lg shadow-md p-6">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Search</label>
+        <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex-1">
             <div className="relative">
               <FaSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
               <input
@@ -280,12 +311,11 @@ const ManageOrders = () => {
               />
             </div>
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+          <div className="flex gap-4">
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
             >
               <option value="all">All Status</option>
               <option value="pending">Pending</option>
@@ -294,24 +324,21 @@ const ManageOrders = () => {
               <option value="delivered">Delivered</option>
               <option value="cancelled">Cancelled</option>
             </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Date Range</label>
             <select
               value={dateFilter}
               onChange={(e) => setDateFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
             >
-              <option value="all">All Time</option>
+              <option value="all">All Dates</option>
               <option value="today">Today</option>
               <option value="week">This Week</option>
               <option value="month">This Month</option>
             </select>
-          </div>
-          <div className="flex items-end">
-            <button className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-2" onClick={handleClearFilters}>
-              <FaFilter />
-              Clear Filters
+            <button
+              onClick={handleClearFilters}
+              className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
+            >
+              Clear
             </button>
           </div>
         </div>
@@ -344,94 +371,113 @@ const ManageOrders = () => {
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 <input
                   type="checkbox"
-                  checked={selectedOrders.length === filteredOrders.length && filteredOrders.length > 0}
-                  onChange={e => handleSelectAll(e.target.checked)}
+                  onChange={(e) => handleSelectAll(e.target.checked)}
                   className="rounded border-gray-300 text-red-600 focus:ring-red-500"
                 />
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order ID</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Items</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Payment</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Delivery</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Order ID
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Customer
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Items
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Total
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Status
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Payment
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Date
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
             {paginatedOrders.map((order) => (
-              <tr key={order.id} className={selectedOrders.includes(order.id) ? 'bg-red-50' : ''}>
+              <tr key={order.id} className="hover:bg-gray-50">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <input
                     type="checkbox"
                     checked={selectedOrders.includes(order.id)}
-                    onChange={e => handleSelectOrder(order.id, e.target.checked)}
+                    onChange={(e) => handleSelectOrder(order.id, e.target.checked)}
                     className="rounded border-gray-300 text-red-600 focus:ring-red-500"
                   />
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap font-bold text-gray-800">{order.id}</td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-gray-900">{order.customer?.name || order.email || 'N/A'}</div>
-                  <div className="text-xs text-gray-500">{order.customer?.email || order.email || 'N/A'}</div>
-                  <div className="text-xs text-gray-400">{order.customer?.phone || 'N/A'}</div>
+                  <div className="text-sm font-medium text-gray-900">{order.id}</div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  {order.items.map((item, idx) => (
-                    <div key={idx} className="text-xs text-gray-700">
-                      {item.name} x{item.quantity} <span className="text-gray-400">@{item.price}</span>
-                    </div>
-                  ))}
+                  <div>
+                    <div className="text-sm font-medium text-gray-900">{order.customer?.name || order.name}</div>
+                    <div className="text-sm text-gray-500">{order.customer?.email || order.email}</div>
+                    <div className="text-sm text-gray-500">{order.customer?.phone || order.phone}</div>
+                  </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap font-bold text-red-600">{order.total} FCFA</td>
+                <td className="px-6 py-4">
+                  <div className="text-sm text-gray-900">
+                    {order.items?.slice(0, 2).map((item, index) => (
+                      <div key={index}>
+                        {item.name} x{item.quantity}
+                      </div>
+                    ))}
+                    {order.items?.length > 2 && (
+                      <div className="text-gray-500">+{order.items.length - 2} more</div>
+                    )}
+                  </div>
+                </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  {['delivered', 'cancelled'].includes(order.status) ? (
-                    <span className={`inline-flex items-center px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                      {order.status.charAt(0).toUpperCase() + order.status.slice(1)}
-                      <FaLock className="ml-2 text-gray-400" title="Order is locked and cannot be updated" />
+                  <div className="text-sm font-medium text-gray-900">{order.total?.toFixed(2)} FCFA</div>
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="flex items-center space-x-2">
+                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
+                      {order.status}
                     </span>
-                  ) : (
-                    <select
-                      value={order.status}
-                      onChange={e => handleStatusUpdate(order.id, e.target.value)}
-                      className="border rounded px-2 py-1"
-                    >
-                      <option value="pending">Pending</option>
-                      <option value="preparing">Preparing</option>
-                      <option value="delivering">Delivering</option>
-                      <option value="delivered">Delivered</option>
-                      <option value="cancelled">Cancelled</option>
-                    </select>
-                  )}
+                    {(order.status === 'delivered' || order.status === 'cancelled') && (
+                      <FaLock className="text-gray-400" title="Order cannot be edited" />
+                    )}
+                  </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPaymentStatusColor(order.paymentStatus)}`}>
-                    {order.paymentStatus ? order.paymentStatus.charAt(0).toUpperCase() + order.paymentStatus.slice(1) : 'N/A'}
+                    {order.paymentStatus}
                   </span>
-                  <div className="text-xs text-gray-400">{order.paymentMethod ? order.paymentMethod.replace('_', ' ') : 'N/A'}</div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">{order.orderDate}</td>
-                <td className="px-6 py-4 whitespace-nowrap text-xs text-gray-500">{order.deliveryDate || '-'}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <button className="bg-blue-600 text-white px-3 py-1 rounded text-xs hover:bg-blue-700 transition-colors mr-2" onClick={() => setViewOrder(order)}>
-                    <FaEye />
-                  </button>
-                  <button 
-                    className={`px-3 py-1 rounded text-xs transition-colors mr-2 ${
-                      ['delivered', 'cancelled'].includes(order.status) 
-                        ? 'bg-gray-400 text-gray-600 cursor-not-allowed' 
-                        : 'bg-green-600 text-white hover:bg-green-700'
-                    }`} 
-                    onClick={() => !['delivered', 'cancelled'].includes(order.status) && setEditOrder(order)}
-                    disabled={['delivered', 'cancelled'].includes(order.status)}
-                    title={['delivered', 'cancelled'].includes(order.status) ? 'Order is locked and cannot be edited' : 'Edit order'}
-                  >
-                    <FaEdit />
-                  </button>
-                  <button className="bg-red-600 text-white px-3 py-1 rounded text-xs hover:bg-red-700 transition-colors" onClick={() => setDeleteOrder(order)}>
-                    <FaTrash />
-                  </button>
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                  {new Date(order.orderDate).toLocaleDateString()}
+                </td>
+                <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={() => setViewOrder(order)}
+                      className="text-blue-600 hover:text-blue-900"
+                    >
+                      <FaEye />
+                    </button>
+                    {order.status !== 'delivered' && order.status !== 'cancelled' && (
+                      <button
+                        onClick={() => setEditOrder(order)}
+                        className="text-green-600 hover:text-green-900"
+                      >
+                        <FaEdit />
+                      </button>
+                    )}
+                    <button
+                      onClick={() => setDeleteOrder(order)}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      <FaTrash />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -440,63 +486,99 @@ const ManageOrders = () => {
       </div>
 
       {/* Pagination */}
-      <div className="bg-white rounded-lg shadow-md px-6 py-4">
+      {totalPages > 1 && (
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-700">
-            Showing <span className="font-medium">{startIdx}</span> to <span className="font-medium">{endIdx}</span> of{' '}
-            <span className="font-medium">{filteredOrders.length}</span> results
+            Showing {startIdx} to {endIdx} of {filteredOrders.length} results
           </div>
-          <div className="flex gap-2">
+          <div className="flex space-x-2">
             <button
-              className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
+              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Previous
             </button>
-            {Array.from({ length: totalPages }, (_, i) => (
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
               <button
-                key={i + 1}
-                className={`px-3 py-1 text-sm rounded ${currentPage === i + 1 ? 'bg-red-600 text-white' : 'border border-gray-300 hover:bg-gray-50'}`}
-                onClick={() => handlePageChange(i + 1)}
+                key={page}
+                onClick={() => handlePageChange(page)}
+                className={`px-3 py-2 text-sm font-medium rounded-lg ${
+                  currentPage === page
+                    ? 'text-white bg-red-600'
+                    : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
+                }`}
               >
-                {i + 1}
+                {page}
               </button>
             ))}
             <button
-              className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
               onClick={() => handlePageChange(currentPage + 1)}
-              disabled={currentPage === totalPages || totalPages === 0}
+              disabled={currentPage === totalPages}
+              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
             </button>
           </div>
         </div>
-      </div>
+      )}
 
       {/* View Order Modal */}
       {viewOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg">
-            <h2 className="text-xl font-bold mb-4">Order Details</h2>
-            <div className="mb-2"><b>ID:</b> {viewOrder.id}</div>
-            <div className="mb-2"><b>Customer:</b> {viewOrder.customer?.name || viewOrder.email || 'N/A'} ({viewOrder.customer?.email || viewOrder.email || 'N/A'}, {viewOrder.customer?.phone || 'N/A'})</div>
-            <div className="mb-2"><b>Address:</b> {viewOrder.deliveryAddress}</div>
-            <div className="mb-2"><b>Items:</b>
-              <ul className="list-disc ml-6">
-                {viewOrder.items.map((item, idx) => (
-                  <li key={idx}>{item.name} x{item.quantity} @ {item.price} FCFA</li>
-                ))}
-              </ul>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Order Details</h3>
+              <button
+                onClick={() => setViewOrder(null)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ×
+              </button>
             </div>
-            <div className="mb-2"><b>Total:</b> {viewOrder.total} FCFA</div>
-            <div className="mb-2"><b>Status:</b> {viewOrder.status}</div>
-            <div className="mb-2"><b>Payment:</b> {viewOrder.paymentStatus} ({viewOrder.paymentMethod})</div>
-            <div className="mb-2"><b>Order Date:</b> {viewOrder.orderDate}</div>
-            <div className="mb-2"><b>Delivery Date:</b> {viewOrder.deliveryDate || '-'}</div>
-            <div className="mb-2"><b>Notes:</b> {viewOrder.notes}</div>
-            <div className="flex justify-end mt-4">
-              <button className="px-4 py-2 bg-gray-200 rounded mr-2" onClick={() => setViewOrder(null)}>Close</button>
+            <div className="space-y-4">
+              <div>
+                <strong>Order ID:</strong> {viewOrder.id}
+              </div>
+              <div>
+                <strong>Customer:</strong> {viewOrder.customer?.name || viewOrder.name}
+              </div>
+              <div>
+                <strong>Email:</strong> {viewOrder.customer?.email || viewOrder.email}
+              </div>
+              <div>
+                <strong>Phone:</strong> {viewOrder.customer?.phone || viewOrder.phone}
+              </div>
+              <div>
+                <strong>Address:</strong> {viewOrder.deliveryAddress}
+              </div>
+              <div>
+                <strong>Items:</strong>
+                <ul className="list-disc list-inside mt-1">
+                  {viewOrder.items?.map((item, index) => (
+                    <li key={index}>
+                      {item.name} x{item.quantity} - {item.price} FCFA
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div>
+                <strong>Total:</strong> {viewOrder.total} FCFA
+              </div>
+              <div>
+                <strong>Status:</strong> {viewOrder.status}
+              </div>
+              <div>
+                <strong>Payment Status:</strong> {viewOrder.paymentStatus}
+              </div>
+              <div>
+                <strong>Order Date:</strong> {viewOrder.orderDate}
+              </div>
+              {viewOrder.notes && (
+                <div>
+                  <strong>Notes:</strong> {viewOrder.notes}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -504,66 +586,101 @@ const ManageOrders = () => {
 
       {/* Edit Order Modal */}
       {editOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg">
-            <h2 className="text-xl font-bold mb-4">Edit Order</h2>
-            {['delivered', 'cancelled'].includes(editOrder.status) ? (
-              <div className="text-center py-8">
-                <FaLock className="mx-auto text-gray-400 text-4xl mb-4" />
-                <h3 className="text-lg font-semibold text-gray-700 mb-2">Order is Locked</h3>
-                <p className="text-gray-500 mb-4">
-                  This order has been {editOrder.status} and cannot be edited.
-                </p>
-                <button 
-                  className="px-4 py-2 bg-gray-200 rounded" 
-                  onClick={() => setEditOrder(null)}
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Edit Order</h3>
+              <button
+                onClick={() => setEditOrder(null)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ×
+              </button>
+            </div>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <select
+                  value={editOrder.status}
+                  onChange={(e) => setEditOrder({ ...editOrder, status: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                 >
-                  Close
+                  <option value="pending">Pending</option>
+                  <option value="preparing">Preparing</option>
+                  <option value="delivering">Delivering</option>
+                  <option value="delivered">Delivered</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Payment Status</label>
+                <select
+                  value={editOrder.paymentStatus}
+                  onChange={(e) => setEditOrder({ ...editOrder, paymentStatus: e.target.value })}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                >
+                  <option value="pending">Pending</option>
+                  <option value="paid">Paid</option>
+                  <option value="failed">Failed</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Notes</label>
+                <textarea
+                  value={editOrder.notes || ''}
+                  onChange={(e) => setEditOrder({ ...editOrder, notes: e.target.value })}
+                  rows={3}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                />
+              </div>
+              <div className="flex justify-end space-x-3">
+                <button
+                  onClick={() => setEditOrder(null)}
+                  className="px-4 py-2 text-gray-600 hover:text-gray-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => handleEditSave(editOrder)}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                >
+                  Save Changes
                 </button>
               </div>
-            ) : (
-              <form onSubmit={e => {e.preventDefault(); handleEditSave(editOrder);}}>
-                <div className="mb-2">
-                  <label className="block text-sm font-medium">Status</label>
-                  <select className="w-full border rounded px-2 py-1" value={editOrder.status} onChange={e => setEditOrder({...editOrder, status: e.target.value})}>
-                    <option value="pending">Pending</option>
-                    <option value="preparing">Preparing</option>
-                    <option value="delivering">Delivering</option>
-                    <option value="delivered">Delivered</option>
-                    <option value="cancelled">Cancelled</option>
-                  </select>
-                </div>
-                <div className="mb-2">
-                  <label className="block text-sm font-medium">Payment Status</label>
-                  <select className="w-full border rounded px-2 py-1" value={editOrder.paymentStatus} onChange={e => setEditOrder({...editOrder, paymentStatus: e.target.value})}>
-                    <option value="paid">Paid</option>
-                    <option value="pending">Pending</option>
-                    <option value="failed">Failed</option>
-                  </select>
-                </div>
-                <div className="mb-2">
-                  <label className="block text-sm font-medium">Delivery Date</label>
-                  <input type="text" className="w-full border rounded px-2 py-1" value={editOrder.deliveryDate || ''} onChange={e => setEditOrder({...editOrder, deliveryDate: e.target.value})} />
-                </div>
-                <div className="flex justify-end mt-4">
-                  <button type="button" className="px-4 py-2 bg-gray-200 rounded mr-2" onClick={() => setEditOrder(null)}>Cancel</button>
-                  <button type="submit" className="px-4 py-2 bg-green-600 text-white rounded">Save</button>
-                </div>
-              </form>
-            )}
+            </div>
           </div>
         </div>
       )}
 
       {/* Delete Confirmation Modal */}
       {deleteOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-            <h2 className="text-xl font-bold mb-4 text-red-600">Delete Order</h2>
-            <p>Are you sure you want to delete order <b>{deleteOrder.id}</b>? This action cannot be undone.</p>
-            <div className="flex justify-end mt-4">
-              <button className="px-4 py-2 bg-gray-200 rounded mr-2" onClick={() => setDeleteOrder(null)}>Cancel</button>
-              <button className="px-4 py-2 bg-red-600 text-white rounded" onClick={handleDeleteConfirm}>Delete</button>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold">Delete Order</h3>
+              <button
+                onClick={() => setDeleteOrder(null)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                ×
+              </button>
+            </div>
+            <p className="text-gray-600 mb-4">
+              Are you sure you want to delete order {deleteOrder.id}? This action cannot be undone.
+            </p>
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={() => setDeleteOrder(null)}
+                className="px-4 py-2 text-gray-600 hover:text-gray-800"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteConfirm}
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+              >
+                Delete
+              </button>
             </div>
           </div>
         </div>

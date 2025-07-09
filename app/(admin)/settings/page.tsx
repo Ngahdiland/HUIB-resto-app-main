@@ -1,9 +1,11 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FaSave, FaCog, FaBell, FaShieldAlt, FaCreditCard, FaTruck, FaEnvelope, FaGlobe, FaUser, FaLock, FaPalette, FaDatabase } from 'react-icons/fa';
 
 const Settings = () => {
   const [activeTab, setActiveTab] = useState('general');
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [settings, setSettings] = useState({
     business: {
       name: 'HuibApp Food Delivery',
@@ -57,6 +59,23 @@ const Settings = () => {
     }
   });
 
+  useEffect(() => {
+    const loadSettings = async () => {
+      try {
+        setLoading(true);
+        // Here you would typically load settings from an API
+        // For now, we'll simulate loading
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      } catch (error) {
+        console.error('Error loading settings:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadSettings();
+  }, []);
+
   const handleSettingChange = (section: string, key: string, value: any) => {
     setSettings(prev => ({
       ...prev,
@@ -65,6 +84,20 @@ const Settings = () => {
         [key]: value
       }
     }));
+  };
+
+  const handleSaveSettings = async () => {
+    try {
+      setSaving(true);
+      // Here you would typically save settings to an API
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Simulate API call
+      console.log('Settings saved:', settings);
+    } catch (error) {
+      console.error('Error saving settings:', error);
+    } finally {
+      setSaving(false);
+    }
   };
 
   const tabs = [
@@ -76,6 +109,17 @@ const Settings = () => {
     { id: 'appearance', name: 'Appearance', icon: <FaPalette /> }
   ];
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="flex items-center space-x-2">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-red-600"></div>
+          <div className="text-lg text-gray-600">Loading settings...</div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -84,9 +128,22 @@ const Settings = () => {
           <h1 className="text-3xl font-bold text-gray-800">Settings</h1>
           <p className="text-gray-600">Configure your application settings</p>
         </div>
-        <button className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2">
-          <FaSave />
-          Save Changes
+        <button 
+          className="bg-red-600 text-white px-6 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+          onClick={handleSaveSettings}
+          disabled={saving}
+        >
+          {saving ? (
+            <>
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              Saving...
+            </>
+          ) : (
+            <>
+              <FaSave />
+              Save Changes
+            </>
+          )}
         </button>
       </div>
 
@@ -125,6 +182,7 @@ const Settings = () => {
                       value={settings.business.name}
                       onChange={(e) => handleSettingChange('business', 'name', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      disabled={saving}
                     />
                   </div>
                   <div>
@@ -134,6 +192,7 @@ const Settings = () => {
                       value={settings.business.email}
                       onChange={(e) => handleSettingChange('business', 'email', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      disabled={saving}
                     />
                   </div>
                   <div>
@@ -143,6 +202,7 @@ const Settings = () => {
                       value={settings.business.phone}
                       onChange={(e) => handleSettingChange('business', 'phone', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      disabled={saving}
                     />
                   </div>
                   <div>
@@ -151,6 +211,7 @@ const Settings = () => {
                       value={settings.business.currency}
                       onChange={(e) => handleSettingChange('business', 'currency', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      disabled={saving}
                     >
                       <option value="FCFA">FCFA</option>
                     </select>
@@ -161,6 +222,7 @@ const Settings = () => {
                       value={settings.business.timezone}
                       onChange={(e) => handleSettingChange('business', 'timezone', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      disabled={saving}
                     >
                       <option value="America/New_York">Eastern Time</option>
                       <option value="America/Chicago">Central Time</option>
@@ -174,6 +236,7 @@ const Settings = () => {
                       value={settings.business.language}
                       onChange={(e) => handleSettingChange('business', 'language', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      disabled={saving}
                     >
                       <option value="English">English</option>
                       <option value="Spanish">Spanish</option>
@@ -189,6 +252,7 @@ const Settings = () => {
                     onChange={(e) => handleSettingChange('business', 'address', e.target.value)}
                     rows={3}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                    disabled={saving}
                   />
                 </div>
               </div>
@@ -201,33 +265,45 @@ const Settings = () => {
               <div>
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">Notification Preferences</h3>
                 <div className="space-y-4">
-                  {Object.entries(settings.notifications).map(([key, value]) => (
-                    <div key={key} className="flex items-center justify-between">
-                      <div>
-                        <label className="text-sm font-medium text-gray-700">
-                          {key.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase())}
-                        </label>
-                        <p className="text-xs text-gray-500">
-                          {key.includes('email') && 'Receive notifications via email'}
-                          {key.includes('sms') && 'Receive notifications via SMS'}
-                          {key.includes('push') && 'Receive push notifications'}
-                          {key.includes('order') && 'Get notified about new orders'}
-                          {key.includes('payment') && 'Get notified about payments'}
-                          {key.includes('system') && 'Get system alerts and updates'}
-                          {key.includes('marketing') && 'Receive marketing emails'}
-                        </p>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={value}
-                          onChange={(e) => handleSettingChange('notifications', key, e.target.checked)}
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-                      </label>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium text-gray-800">Email Notifications</h4>
+                      <p className="text-sm text-gray-600">Receive notifications via email</p>
                     </div>
-                  ))}
+                    <input
+                      type="checkbox"
+                      checked={settings.notifications.emailNotifications}
+                      onChange={(e) => handleSettingChange('notifications', 'emailNotifications', e.target.checked)}
+                      className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                      disabled={saving}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium text-gray-800">SMS Notifications</h4>
+                      <p className="text-sm text-gray-600">Receive notifications via SMS</p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={settings.notifications.smsNotifications}
+                      onChange={(e) => handleSettingChange('notifications', 'smsNotifications', e.target.checked)}
+                      className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                      disabled={saving}
+                    />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium text-gray-800">Push Notifications</h4>
+                      <p className="text-sm text-gray-600">Receive push notifications</p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={settings.notifications.pushNotifications}
+                      onChange={(e) => handleSettingChange('notifications', 'pushNotifications', e.target.checked)}
+                      className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                      disabled={saving}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -239,118 +315,47 @@ const Settings = () => {
               <div>
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">Payment Methods</h3>
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <FaCreditCard className="text-blue-600" />
-                      <div>
-                        <h4 className="font-medium text-gray-800">MTN MoMo</h4>
-                        <p className="text-sm text-gray-500">MTN Mobile Money payments</p>
-                      </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium text-gray-800">Stripe</h4>
+                      <p className="text-sm text-gray-600">Enable Stripe payment processing</p>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={settings.payment.stripeEnabled}
-                        onChange={(e) => handleSettingChange('payment', 'stripeEnabled', e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-                    </label>
+                    <input
+                      type="checkbox"
+                      checked={settings.payment.stripeEnabled}
+                      onChange={(e) => handleSettingChange('payment', 'stripeEnabled', e.target.checked)}
+                      className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                      disabled={saving}
+                    />
                   </div>
-                  <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <FaCreditCard className="text-blue-500" />
-                      <div>
-                        <h4 className="font-medium text-gray-800">Orange Money</h4>
-                        <p className="text-sm text-gray-500">Orange Money payments</p>
-                      </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium text-gray-800">PayPal</h4>
+                      <p className="text-sm text-gray-600">Enable PayPal payment processing</p>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={settings.payment.paypalEnabled}
-                        onChange={(e) => handleSettingChange('payment', 'paypalEnabled', e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-                    </label>
+                    <input
+                      type="checkbox"
+                      checked={settings.payment.paypalEnabled}
+                      onChange={(e) => handleSettingChange('payment', 'paypalEnabled', e.target.checked)}
+                      className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                      disabled={saving}
+                    />
                   </div>
-                  <div className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <FaCreditCard className="text-blue-500" />
-                      <div>
-                        <h4 className="font-medium text-gray-800">Credit Card</h4>
-                        <p className="text-sm text-gray-500">Credit Card payments</p>
-                      </div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-medium text-gray-800">Cash on Delivery</h4>
+                      <p className="text-sm text-gray-600">Allow cash on delivery payments</p>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={settings.payment.cashOnDelivery}
-                        onChange={(e) => handleSettingChange('payment', 'cashOnDelivery', e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-                    </label>
+                    <input
+                      type="checkbox"
+                      checked={settings.payment.cashOnDelivery}
+                      onChange={(e) => handleSettingChange('payment', 'cashOnDelivery', e.target.checked)}
+                      className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                      disabled={saving}
+                    />
                   </div>
                 </div>
               </div>
-
-              {settings.payment.stripeEnabled && (
-                <div>
-                  <h4 className="text-md font-semibold text-gray-800 mb-3">Stripe Configuration</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Publishable Key</label>
-                      <input
-                        type="text"
-                        value={settings.payment.stripePublishableKey}
-                        onChange={(e) => handleSettingChange('payment', 'stripePublishableKey', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                        placeholder="pk_test_..."
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Secret Key</label>
-                      <input
-                        type="password"
-                        value={settings.payment.stripeSecretKey}
-                        onChange={(e) => handleSettingChange('payment', 'stripeSecretKey', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                        placeholder="sk_test_..."
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {settings.payment.paypalEnabled && (
-                <div>
-                  <h4 className="text-md font-semibold text-gray-800 mb-3">PayPal Configuration</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Client ID</label>
-                      <input
-                        type="text"
-                        value={settings.payment.paypalClientId}
-                        onChange={(e) => handleSettingChange('payment', 'paypalClientId', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                        placeholder="client_id_..."
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Secret</label>
-                      <input
-                        type="password"
-                        value={settings.payment.paypalSecret}
-                        onChange={(e) => handleSettingChange('payment', 'paypalSecret', e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                        placeholder="secret_..."
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
           )}
 
@@ -364,29 +369,30 @@ const Settings = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Delivery Fee (FCFA)</label>
                     <input
                       type="number"
-                      step="0.01"
                       value={settings.delivery.deliveryFee}
-                      onChange={(e) => handleSettingChange('delivery', 'deliveryFee', parseFloat(e.target.value))}
+                      onChange={(e) => handleSettingChange('delivery', 'deliveryFee', Number(e.target.value))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      disabled={saving}
                     />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Free Delivery Threshold (FCFA)</label>
                     <input
                       type="number"
-                      step="0.01"
                       value={settings.delivery.freeDeliveryThreshold}
-                      onChange={(e) => handleSettingChange('delivery', 'freeDeliveryThreshold', parseFloat(e.target.value))}
+                      onChange={(e) => handleSettingChange('delivery', 'freeDeliveryThreshold', Number(e.target.value))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      disabled={saving}
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Max Delivery Distance (miles)</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Max Delivery Distance (km)</label>
                     <input
                       type="number"
                       value={settings.delivery.maxDeliveryDistance}
-                      onChange={(e) => handleSettingChange('delivery', 'maxDeliveryDistance', parseInt(e.target.value))}
+                      onChange={(e) => handleSettingChange('delivery', 'maxDeliveryDistance', Number(e.target.value))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      disabled={saving}
                     />
                   </div>
                   <div>
@@ -396,40 +402,36 @@ const Settings = () => {
                       value={settings.delivery.deliveryTime}
                       onChange={(e) => handleSettingChange('delivery', 'deliveryTime', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      placeholder="30-45 minutes"
+                      disabled={saving}
                     />
                   </div>
                 </div>
-                <div className="mt-6 space-y-4">
+                <div className="mt-4 space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="font-medium text-gray-800">Allow Pickup</h4>
-                      <p className="text-sm text-gray-500">Customers can pick up their orders</p>
+                      <p className="text-sm text-gray-600">Allow customers to pick up orders</p>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={settings.delivery.allowPickup}
-                        onChange={(e) => handleSettingChange('delivery', 'allowPickup', e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-                    </label>
+                    <input
+                      type="checkbox"
+                      checked={settings.delivery.allowPickup}
+                      onChange={(e) => handleSettingChange('delivery', 'allowPickup', e.target.checked)}
+                      className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                      disabled={saving}
+                    />
                   </div>
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="font-medium text-gray-800">Allow Delivery</h4>
-                      <p className="text-sm text-gray-500">Customers can have orders delivered</p>
+                      <p className="text-sm text-gray-600">Allow delivery to customer addresses</p>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={settings.delivery.allowDelivery}
-                        onChange={(e) => handleSettingChange('delivery', 'allowDelivery', e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-                    </label>
+                    <input
+                      type="checkbox"
+                      checked={settings.delivery.allowDelivery}
+                      onChange={(e) => handleSettingChange('delivery', 'allowDelivery', e.target.checked)}
+                      className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                      disabled={saving}
+                    />
                   </div>
                 </div>
               </div>
@@ -445,66 +447,44 @@ const Settings = () => {
                   <div className="flex items-center justify-between">
                     <div>
                       <h4 className="font-medium text-gray-800">Two-Factor Authentication</h4>
-                      <p className="text-sm text-gray-500">Require 2FA for admin accounts</p>
+                      <p className="text-sm text-gray-600">Require 2FA for admin accounts</p>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={settings.security.twoFactorAuth}
-                        onChange={(e) => handleSettingChange('security', 'twoFactorAuth', e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-red-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-red-600"></div>
-                    </label>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Session Timeout (minutes)</label>
-                      <input
-                        type="number"
-                        value={settings.security.sessionTimeout}
-                        onChange={(e) => handleSettingChange('security', 'sessionTimeout', parseInt(e.target.value))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Password Expiry (days)</label>
-                      <input
-                        type="number"
-                        value={settings.security.passwordExpiry}
-                        onChange={(e) => handleSettingChange('security', 'passwordExpiry', parseInt(e.target.value))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Failed Login Attempts</label>
-                      <input
-                        type="number"
-                        value={settings.security.failedLoginAttempts}
-                        onChange={(e) => handleSettingChange('security', 'failedLoginAttempts', parseInt(e.target.value))}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">SSL Enabled</label>
-                      <select
-                        value={settings.security.sslEnabled ? 'true' : 'false'}
-                        onChange={(e) => handleSettingChange('security', 'sslEnabled', e.target.value === 'true')}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      >
-                        <option value="true">Enabled</option>
-                        <option value="false">Disabled</option>
-                      </select>
-                    </div>
+                    <input
+                      type="checkbox"
+                      checked={settings.security.twoFactorAuth}
+                      onChange={(e) => handleSettingChange('security', 'twoFactorAuth', e.target.checked)}
+                      className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                      disabled={saving}
+                    />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">IP Whitelist (optional)</label>
-                    <textarea
-                      value={settings.security.ipWhitelist}
-                      onChange={(e) => handleSettingChange('security', 'ipWhitelist', e.target.value)}
-                      rows={3}
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Session Timeout (minutes)</label>
+                    <input
+                      type="number"
+                      value={settings.security.sessionTimeout}
+                      onChange={(e) => handleSettingChange('security', 'sessionTimeout', Number(e.target.value))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      placeholder="Enter IP addresses separated by commas"
+                      disabled={saving}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Password Expiry (days)</label>
+                    <input
+                      type="number"
+                      value={settings.security.passwordExpiry}
+                      onChange={(e) => handleSettingChange('security', 'passwordExpiry', Number(e.target.value))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      disabled={saving}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Failed Login Attempts</label>
+                    <input
+                      type="number"
+                      value={settings.security.failedLoginAttempts}
+                      onChange={(e) => handleSettingChange('security', 'failedLoginAttempts', Number(e.target.value))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      disabled={saving}
                     />
                   </div>
                 </div>
@@ -520,37 +500,23 @@ const Settings = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Primary Color</label>
-                    <div className="flex items-center space-x-3">
-                      <input
-                        type="color"
-                        value={settings.appearance.primaryColor}
-                        onChange={(e) => handleSettingChange('appearance', 'primaryColor', e.target.value)}
-                        className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
-                      />
-                      <input
-                        type="text"
-                        value={settings.appearance.primaryColor}
-                        onChange={(e) => handleSettingChange('appearance', 'primaryColor', e.target.value)}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      />
-                    </div>
+                    <input
+                      type="color"
+                      value={settings.appearance.primaryColor}
+                      onChange={(e) => handleSettingChange('appearance', 'primaryColor', e.target.value)}
+                      className="w-full h-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      disabled={saving}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Secondary Color</label>
-                    <div className="flex items-center space-x-3">
-                      <input
-                        type="color"
-                        value={settings.appearance.secondaryColor}
-                        onChange={(e) => handleSettingChange('appearance', 'secondaryColor', e.target.value)}
-                        className="w-12 h-10 border border-gray-300 rounded cursor-pointer"
-                      />
-                      <input
-                        type="text"
-                        value={settings.appearance.secondaryColor}
-                        onChange={(e) => handleSettingChange('appearance', 'secondaryColor', e.target.value)}
-                        className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      />
-                    </div>
+                    <input
+                      type="color"
+                      value={settings.appearance.secondaryColor}
+                      onChange={(e) => handleSettingChange('appearance', 'secondaryColor', e.target.value)}
+                      className="w-full h-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      disabled={saving}
+                    />
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Theme</label>
@@ -558,20 +524,12 @@ const Settings = () => {
                       value={settings.appearance.theme}
                       onChange={(e) => handleSettingChange('appearance', 'theme', e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                      disabled={saving}
                     >
                       <option value="light">Light</option>
                       <option value="dark">Dark</option>
                       <option value="auto">Auto</option>
                     </select>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Logo URL</label>
-                    <input
-                      type="text"
-                      value={settings.appearance.logo}
-                      onChange={(e) => handleSettingChange('appearance', 'logo', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                    />
                   </div>
                 </div>
               </div>
