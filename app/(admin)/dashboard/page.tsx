@@ -1,6 +1,6 @@
 "use client";
 import React, { useState } from 'react';
-import { FaUsers, FaShoppingCart, FaDollarSign, FaStar, FaArrowUp, FaArrowDown, FaChartLine, FaChartBar, FaChartPie } from 'react-icons/fa';
+import { FaUsers, FaShoppingCart, FaDollarSign, FaStar, FaArrowUp, FaArrowDown, FaChartLine, FaChartBar, FaChartPie, FaDownload } from 'react-icons/fa';
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -32,18 +32,10 @@ ChartJS.register(
 
 const Dashboard = () => {
   const [selectedMetric, setSelectedMetric] = useState('revenue');
-  const [timeRange, setTimeRange] = useState('7');
+  const [timeRange, setTimeRange] = useState('7d');
 
   // Sample data - replace with real API calls
   const stats = [
-    {
-      title: 'Total Users',
-      value: '2,847',
-      change: '+12.5%',
-      trend: 'up',
-      icon: <FaUsers className="text-2xl" />,
-      color: 'bg-blue-500'
-    },
     {
       title: 'Total Orders',
       value: '1,234',
@@ -113,30 +105,63 @@ const Dashboard = () => {
     { name: 'Chicken Wings', sales: 76, revenue: 683.24 }
   ];
 
-  // Chart data
-  const chartData = [
-    { date: 'Jan 1', revenue: 1200, orders: 45 },
-    { date: 'Jan 2', revenue: 1350, orders: 52 },
-    { date: 'Jan 3', revenue: 980, orders: 38 },
-    { date: 'Jan 4', revenue: 1650, orders: 62 },
-    { date: 'Jan 5', revenue: 1420, orders: 55 },
-    { date: 'Jan 6', revenue: 1890, orders: 71 },
-    { date: 'Jan 7', revenue: 2100, orders: 78 },
-    { date: 'Jan 8', revenue: 1850, orders: 68 },
-    { date: 'Jan 9', revenue: 2200, orders: 82 },
-    { date: 'Jan 10', revenue: 1950, orders: 73 },
-    { date: 'Jan 11', revenue: 2400, orders: 89 },
-    { date: 'Jan 12', revenue: 2100, orders: 78 },
-    { date: 'Jan 13', revenue: 1800, orders: 67 },
-    { date: 'Jan 14', revenue: 2300, orders: 85 }
+  // Chart data (simulate dates for filtering)
+  const today = new Date('2024-01-15T23:59:59'); // Simulated 'now' for demo
+  const chartDataRaw = [
+    { date: '2024-01-01', revenue: 1200, orders: 45 },
+    { date: '2024-01-02', revenue: 1350, orders: 52 },
+    { date: '2024-01-03', revenue: 980, orders: 38 },
+    { date: '2024-01-04', revenue: 1650, orders: 62 },
+    { date: '2024-01-05', revenue: 1420, orders: 55 },
+    { date: '2024-01-06', revenue: 1890, orders: 71 },
+    { date: '2024-01-07', revenue: 2100, orders: 78 },
+    { date: '2024-01-08', revenue: 1850, orders: 68 },
+    { date: '2024-01-09', revenue: 2200, orders: 82 },
+    { date: '2024-01-10', revenue: 1950, orders: 73 },
+    { date: '2024-01-11', revenue: 2400, orders: 89 },
+    { date: '2024-01-12', revenue: 2100, orders: 78 },
+    { date: '2024-01-13', revenue: 1800, orders: 67 },
+    { date: '2024-01-14', revenue: 2300, orders: 85 },
+    { date: '2024-01-15', revenue: 2500, orders: 90 },
   ];
 
-  const orderStatusData = [
+  // Helper to filter by time range
+  function filterByTimeRange<T extends Record<string, any>>(data: T[], dateKey: string = 'date'): T[] {
+    let cutoff;
+    switch (timeRange) {
+      case '24h':
+        cutoff = new Date(today);
+        cutoff.setDate(today.getDate() - 1);
+        break;
+      case '7d':
+        cutoff = new Date(today);
+        cutoff.setDate(today.getDate() - 7);
+        break;
+      case '30d':
+        cutoff = new Date(today);
+        cutoff.setDate(today.getDate() - 30);
+        break;
+      case '1y':
+        cutoff = new Date(today);
+        cutoff.setFullYear(today.getFullYear() - 1);
+        break;
+      case 'all':
+      default:
+        return data;
+    }
+    return data.filter((item: T) => new Date(item[dateKey]) > cutoff);
+  }
+
+  const chartData = filterByTimeRange(chartDataRaw);
+
+  const orderStatusDataRaw = [
     { status: 'Delivered', count: 892, percentage: 72 },
     { status: 'In Transit', count: 156, percentage: 13 },
     { status: 'Preparing', count: 98, percentage: 8 },
     { status: 'Pending', count: 88, percentage: 7 }
   ];
+  // For demo, just use the same data, but in real app, filter by timeRange
+  const orderStatusData = orderStatusDataRaw;
 
   const peakHoursData = [
     { hour: '12:00 PM', orders: 45 },
@@ -366,23 +391,22 @@ const Dashboard = () => {
 
   // Generate CSV report
   function handleGenerateReport() {
-    // Example: Orders, Products, Users
     let csv = '';
-    // Orders
-    csv += 'Orders\n';
-    csv += 'Order ID,Customer,Items,Total,Status,Date\n';
-    recentOrders.forEach(order => {
-      csv += `${order.id},${order.customer},${order.items},${order.total},${order.status},${order.date}\n`;
+    // Revenue/Orders Chart Data
+    csv += `Dashboard Analysis (${timeRange === 'all' ? 'All time' : timeRange})\n`;
+    csv += 'Date,Revenue,Orders\n';
+    chartData.forEach(row => {
+      csv += `${row.date},${row.revenue},${row.orders}\n`;
     });
     csv += '\n';
-    // Top Products
+    // Top Products (static for demo)
     csv += 'Top Products\n';
     csv += 'Product,Sales,Revenue\n';
     topProducts.forEach(p => {
       csv += `${p.name},${p.sales},${p.revenue}\n`;
     });
     csv += '\n';
-    // Users
+    // Users (static for demo)
     csv += 'Users\n';
     csv += 'Name,Email,Role,Status\n';
     users.forEach(u => {
@@ -394,7 +418,7 @@ const Dashboard = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `dashboard_report_${new Date().toISOString().slice(0,10)}.csv`;
+    a.download = `dashboard_report_${timeRange}_${new Date().toISOString().slice(0,10)}.csv`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -410,8 +434,9 @@ const Dashboard = () => {
           <p className="text-gray-600">Welcome back! Here's what's happening with your business.</p>
         </div>
         <div className="flex gap-3">
-          <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors" onClick={handleGenerateReport}>
-            Generate Report
+          <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2" onClick={handleGenerateReport}>
+            <FaDownload />
+            Export Report
           </button>
         </div>
       </div>
@@ -456,9 +481,11 @@ const Dashboard = () => {
                 onChange={(e) => setTimeRange(e.target.value)}
                 className="text-sm border border-gray-300 rounded px-2 py-1"
               >
-                <option value="7">Last 7 days</option>
-                <option value="30">Last 30 days</option>
-                <option value="90">Last 3 months</option>
+                <option value="24h">Past 24 hours</option>
+                <option value="7d">Past 7 days</option>
+                <option value="30d">Past 30 days</option>
+                <option value="1y">Past 1 year</option>
+                <option value="all">All time</option>
               </select>
               <button
                 onClick={() => setSelectedMetric('revenue')}
