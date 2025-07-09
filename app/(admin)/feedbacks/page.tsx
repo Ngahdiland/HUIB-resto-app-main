@@ -7,6 +7,8 @@ const Feedbacks = () => {
   const [ratingFilter, setRatingFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
+  const [currentPage, setCurrentPage] = useState(1);
+  const feedbacksPerPage = 6;
 
   // Sample feedbacks data
   const feedbacks = [
@@ -192,6 +194,60 @@ const Feedbacks = () => {
   const totalComplaints = feedbacks.filter(f => f.type === 'complaint').length;
   const resolvedComplaints = feedbacks.filter(f => f.type === 'complaint' && f.status === 'resolved').length;
 
+  // Export feedbacks as CSV
+  const handleExport = () => {
+    let csv = 'id,customer_name,customer_email,orderId,rating,title,message,type,status,date,response,responseDate,category,tags,helpful,notHelpful,sentiment\n';
+    filteredFeedbacks.forEach(fb => {
+      const tagsStr = fb.tags.join('|');
+      csv += `${fb.id},${fb.customer.name},${fb.customer.email},${fb.orderId},${fb.rating},"${fb.title.replace(/"/g, '""')}","${fb.message.replace(/"/g, '""')}",${fb.type},${fb.status},${fb.date},"${fb.response ? fb.response.replace(/"/g, '""') : ''}",${fb.responseDate || ''},${fb.category},${tagsStr},${fb.helpful},${fb.notHelpful},${fb.sentiment}\n`;
+    });
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `feedbacks_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  // Print feedbacks list
+  const handlePrint = () => {
+    const printContents = document.getElementById('feedbacks-list-print')?.innerHTML;
+    if (!printContents) return;
+    const printWindow = window.open('', '', 'height=600,width=900');
+    if (!printWindow) return;
+    printWindow.document.write('<html><head><title>Print Feedbacks</title>');
+    printWindow.document.write('<style>body{font-family:sans-serif;} .feedback-card{border:1px solid #eee;padding:16px;margin-bottom:16px;border-radius:8px;} .feedback-title{font-weight:bold;font-size:1.1em;} .feedback-meta{color:#555;font-size:0.95em;margin-bottom:8px;} .feedback-message{margin-bottom:8px;} .feedback-tags{font-size:0.9em;color:#888;} .admin-response{background:#e6f0fa;padding:8px;border-radius:6px;}</style>');
+    printWindow.document.write('</head><body >');
+    printWindow.document.write(printContents);
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
+  };
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredFeedbacks.length / feedbacksPerPage);
+  const paginatedFeedbacks = filteredFeedbacks.slice((currentPage - 1) * feedbacksPerPage, currentPage * feedbacksPerPage);
+  const startIdx = filteredFeedbacks.length === 0 ? 0 : (currentPage - 1) * feedbacksPerPage + 1;
+  const endIdx = Math.min(currentPage * feedbacksPerPage, filteredFeedbacks.length);
+  const handlePageChange = (page) => {
+    if (page < 1 || page > totalPages) return;
+    setCurrentPage(page);
+  };
+
+  // Clear filters
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setRatingFilter('all');
+    setStatusFilter('all');
+    setTypeFilter('all');
+    setCurrentPage(1);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -201,11 +257,11 @@ const Feedbacks = () => {
           <p className="text-gray-600">Monitor and respond to customer feedback</p>
         </div>
         <div className="flex gap-3">
-          <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2">
+          <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2" onClick={handleExport}>
             <FaDownload />
             Export
           </button>
-          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
+          <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2" onClick={handlePrint}>
             <FaPrint />
             Print
           </button>
@@ -306,7 +362,7 @@ const Feedbacks = () => {
             </select>
           </div>
           <div className="flex items-end">
-            <button className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-2">
+            <button className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors flex items-center justify-center gap-2" onClick={handleClearFilters}>
               <FaFilter />
               Clear Filters
             </button>
@@ -315,9 +371,9 @@ const Feedbacks = () => {
       </div>
 
       {/* Feedbacks List */}
-      <div className="space-y-4">
-        {filteredFeedbacks.map((feedback) => (
-          <div key={feedback.id} className="bg-white rounded-lg shadow-md p-6">
+      <div className="space-y-4" id="feedbacks-list-print">
+        {paginatedFeedbacks.map((feedback) => (
+          <div key={feedback.id} className="bg-white rounded-lg shadow-md p-6 feedback-card">
             <div className="flex items-start justify-between mb-4">
               <div className="flex items-start space-x-4">
                 <img
@@ -327,7 +383,7 @@ const Feedbacks = () => {
                 />
                 <div className="flex-1">
                   <div className="flex items-center space-x-2 mb-2">
-                    <h3 className="text-lg font-semibold text-gray-800">{feedback.title}</h3>
+                    <h3 className="text-lg font-semibold text-gray-800 feedback-title">{feedback.title}</h3>
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTypeColor(feedback.type)}`}>
                       {feedback.type.charAt(0).toUpperCase() + feedback.type.slice(1)}
                     </span>
@@ -338,7 +394,7 @@ const Feedbacks = () => {
                       {feedback.sentiment.charAt(0).toUpperCase() + feedback.sentiment.slice(1)}
                     </span>
                   </div>
-                  <div className="flex items-center space-x-4 text-sm text-gray-600 mb-2">
+                  <div className="flex items-center space-x-4 text-sm text-gray-600 mb-2 feedback-meta">
                     <span className="font-medium">{feedback.customer.name}</span>
                     <span>{feedback.customer.email}</span>
                     <span>Order: {feedback.orderId}</span>
@@ -348,7 +404,7 @@ const Feedbacks = () => {
                     <div className="flex">
                       {renderStars(feedback.rating)}
                     </div>
-                    <span className={`text-sm font-medium ${getRatingColor(feedback.rating)}`}>
+                    <span className={`text-sm font-medium ${getRatingColor(feedback.rating)}`}> 
                       {feedback.rating}/5
                     </span>
                   </div>
@@ -366,7 +422,7 @@ const Feedbacks = () => {
               </div>
             </div>
 
-            <div className="mb-4">
+            <div className="mb-4 feedback-message">
               <p className="text-gray-700 mb-3">{feedback.message}</p>
               {feedback.images.length > 0 && (
                 <div className="flex space-x-2 mb-3">
@@ -380,7 +436,7 @@ const Feedbacks = () => {
                   ))}
                 </div>
               )}
-              <div className="flex flex-wrap gap-1">
+              <div className="flex flex-wrap gap-1 feedback-tags">
                 {feedback.tags.map((tag, index) => (
                   <span key={index} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
                     {tag}
@@ -390,7 +446,7 @@ const Feedbacks = () => {
             </div>
 
             {feedback.response && (
-              <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4">
+              <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4 admin-response">
                 <div className="flex items-center space-x-2 mb-2">
                   <span className="text-sm font-medium text-blue-800">Admin Response</span>
                   <span className="text-xs text-blue-600">{feedback.responseDate}</span>
@@ -422,17 +478,31 @@ const Feedbacks = () => {
       <div className="bg-white rounded-lg shadow-md px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="text-sm text-gray-700">
-            Showing <span className="font-medium">1</span> to <span className="font-medium">10</span> of{' '}
+            Showing <span className="font-medium">{startIdx}</span> to <span className="font-medium">{endIdx}</span> of{' '}
             <span className="font-medium">{filteredFeedbacks.length}</span> results
           </div>
           <div className="flex gap-2">
-            <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
+            <button
+              className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+            >
               Previous
             </button>
-            <button className="px-3 py-1 text-sm bg-red-600 text-white rounded">1</button>
-            <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">2</button>
-            <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">3</button>
-            <button className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50">
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button
+                key={i + 1}
+                className={`px-3 py-1 text-sm rounded ${currentPage === i + 1 ? 'bg-red-600 text-white' : 'border border-gray-300 hover:bg-gray-50'}`}
+                onClick={() => handlePageChange(i + 1)}
+              >
+                {i + 1}
+              </button>
+            ))}
+            <button
+              className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages || totalPages === 0}
+            >
               Next
             </button>
           </div>
