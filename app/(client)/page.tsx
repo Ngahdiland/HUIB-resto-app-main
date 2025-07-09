@@ -97,7 +97,7 @@ const Home = () => {
             </div>
             <div className="text-center">
               <img 
-                src="/assets/hero_img.png" 
+                src="/assets/hero_img.jpg" 
                 alt="Delicious Food" 
                 className="w-full max-w-sm md:max-w-md mx-auto"
               />
@@ -194,7 +194,7 @@ const Home = () => {
             </div>
             <div className="text-center">
               <img 
-                src="/assets/about_img.png" 
+                src="/assets/contact-img.jpg" 
                 alt="About CCF Resto" 
                 className="w-full max-w-sm md:max-w-md mx-auto rounded-lg"
               />
