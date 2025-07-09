@@ -1,312 +1,432 @@
-import Ndole from './Ndolé.jpg';
-import Kilishi from './Kilishi.webp';
-import Eru from './Eru.jpg';
-import Kpwem from './Kpwem.jpg';
-import MbongoTchobi from './Mbongo Tchobi.jpg';
-import Kanda from './Kanda.jpg';
-import FufuAndOkraSoup from './Fufu and Okra Soup.jpg';
-import LaBouillie from './La Bouillie.jpg';
-import DjamaDjama from './Djama Djama.jpg';
-import Kossam from './Kossam.webp';
-import AchuAndYellowSoup from './Achu and Yellow Soup.jpg';
-import CornFufuAndNjamaNjama from './Corn Fufu and Njama Njama.jpg';
-import Koki from './Koki.jpg';
-import TaroAndYellowSauce from './Taro and Yellow Sauce.jpg';
-import Ekwang from './Ekwang.jpg';
-import BongoChobi from './Bongo Chobi.jpg';
-import EruAndWaterfufu from './EruandWaterfufu.jpg';
-import KwacocoBible from './KwacocoBible.jpg';
-
-import logo from './logo.png'
-import hero_img from './hero_img.png'
-import cart_icon from './cart_icon.png'
-import bin_icon from './bin_icon.png'
-import dropdown_icon from './dropdown_icon.png'
-import exchange_icon from './exchange_icon.png'
-import profile_icon from './profile_icon.png'
-import quality_icon from './quality_icon.png'
-import search_icon from './search_icon.png'
-import star_dull_icon from './star_dull_icon.png'
-import star_icon from './star_icon.png'
-import support_img from './support_img.png'
-import menu_icon from './menu_icon.png'
-import about_img from './about_img.png'
-import contact_img from './contact_img.png'
-import razorpay_logo from './razorpay_logo.png'
-import stripe_logo from './stripe_logo.png'
-import cross_icon from './cross_icon.png'
-
-export const assets = {
-    logo,
-    hero_img,
-    cart_icon,
-    dropdown_icon,
-    exchange_icon,
-    profile_icon,
-    quality_icon,
-    search_icon,
-    star_dull_icon,
-    star_icon,
-    bin_icon,
-    support_img,
-    menu_icon,
-    about_img,
-    contact_img,
-    razorpay_logo,
-    stripe_logo,
-    cross_icon
-}
+import ndole from './Ndolé.jpg';
+import kilishi from './Kilishi.webp';
+import eru from './Eru.jpg';
+import kpwem from './Kpwem.jpg';
+import mbongo_tchobi from './Mbongo_Tchobi.jpg';
+import kanda from './Kanda.jpg';
+import fufu_and_okra_soup from './Fufu_and_Okra_Soup.jpg';
+import la_bouillie from './La_Bouillie.jpg';
+import djama_djama from './Djama_Djama.jpg';
+import kossam from './Kossam.webp';
+import achu_and_yellow_soup from './Achu_and_Yellow_Soup.jpg';
+import corn_fufu_and_njama_njama from './Corn_Fufu_and_Njama Njama.jpg';
+import koki from './Koki.jpg';
+import taro_and_yellow_sauce from './Taro_and_Yelow_Sauce.jpg';
+import ekwang from './Ekwang.jpg';
+import bongo_chobi from './Bongo_Chobi.jpg';
+import eru_and_waterfufu from './EruandWaterfufu.jpg';
+import kwacoco_bible from './KwacocoBible.jpg';
 
 // Cameroon Regions, Tribes, and Traditional Meals
 export const products = [
   // Adamawa Region
   {
-    _id: "cm-adamawa-1",
+    id: "PROD-001",
     name: "Ndolé",
-    description: "A rich stew made with bitter leaves, groundnuts, and meat or fish. Popular among the Gbaya and Duru tribes.",
-    price: 2500, // FCFA
-    image: [Ndole],
-    category: "Adamawa",
-    subCategory: "Gbaya, Duru",
-    sizes: ["Plate"],
-    date: "2024-06-19T00:00:00Z",
-    bestseller: true
+    description: "A rich stew of bitter leaves, peanuts, and meat or fish. Signature dish of the Littoral region.",
+    category: "Littoral",
+    price: 2500,
+    originalPrice: 2800,
+    stock: 50,
+    status: "active",
+    rating: 4.9,
+    reviews: 156,
+    image: [ndole],
+    tags: ["Traditional", "Stew", "Littoral"],
+    ingredients: ["Bitter leaves", "Peanuts", "Meat", "Fish", "Palm oil"],
+    allergens: ["Peanuts"],
+    preparationTime: "40-50 minutes",
+    calories: 350,
+    createdAt: "2024-01-10",
+    updatedAt: "2024-01-15"
   },
   {
-    _id: "cm-adamawa-2",
+    id: "PROD-002",
     name: "Kilishi",
     description: "Spicy dried meat snack, similar to beef jerky. Common among the Fulani.",
-    price: 1500,
-    image: [Kilishi],
     category: "Adamawa",
-    subCategory: "Fulani",
-    sizes: ["Pack"],
-    date: "2024-06-19T00:00:00Z",
-    bestseller: false
+    price: 1500,
+    originalPrice: 1700,
+    stock: 30,
+    status: "active",
+    rating: 4.7,
+    reviews: 98,
+    image: [kilishi],
+    tags: ["Traditional", "Snack", "Adamawa"],
+    ingredients: ["Beef", "Spices", "Salt"],
+    allergens: [],
+    preparationTime: "24 hours (drying)",
+    calories: 250,
+    createdAt: "2024-01-12",
+    updatedAt: "2024-01-18"
   },
   // Centre Region
   {
-    _id: "cm-centre-1",
+    id: "PROD-003",
     name: "Eru",
     description: "A vegetable soup made with eru leaves, waterleaf, and assorted meats. Popular among the Ewondo and Bassa.",
-    price: 2000,
-    image: [Eru],
     category: "Centre",
-    subCategory: "Ewondo, Bassa",
-    sizes: ["Plate"],
-    date: "2024-06-19T00:00:00Z",
-    bestseller: true
+    price: 2000,
+    originalPrice: 2200,
+    stock: 40,
+    status: "active",
+    rating: 4.8,
+    reviews: 120,
+    image: [eru],
+    tags: ["Traditional", "Soup", "Centre"],
+    ingredients: ["Eru leaves", "Waterleaf", "Palm oil", "Meat", "Fish", "Crayfish"],
+    allergens: ["Fish"],
+    preparationTime: "35-45 minutes",
+    calories: 320,
+    createdAt: "2024-01-15",
+    updatedAt: "2024-01-20"
   },
   {
-    _id: "cm-centre-2",
+    id: "PROD-004",
     name: "Kpwem",
     description: "Cassava leaves stew, a delicacy of the Bafia tribe.",
-    price: 1800,
-    image: [Kpwem],
     category: "Centre",
-    subCategory: "Bafia",
-    sizes: ["Plate"],
-    date: "2024-06-19T00:00:00Z",
-    bestseller: false
+    price: 1800,
+    originalPrice: 2000,
+    stock: 25,
+    status: "active",
+    rating: 4.6,
+    reviews: 60,
+    image: [kpwem],
+    tags: ["Traditional", "Stew", "Centre"],
+    ingredients: ["Cassava leaves", "Palm oil", "Fish", "Spices"],
+    allergens: ["Fish"],
+    preparationTime: "50 minutes",
+    calories: 300,
+    createdAt: "2024-01-18",
+    updatedAt: "2024-01-22"
   },
   // East Region
   {
-    _id: "cm-east-1",
+    id: "PROD-005",
     name: "Mbongo Tchobi",
     description: "Spicy black stew made with fish and local spices. Popular among the Maka and Gbaya.",
-    price: 2200,
-    image: [MbongoTchobi],
     category: "East",
-    subCategory: "Maka, Gbaya",
-    sizes: ["Plate"],
-    date: "2024-06-19T00:00:00Z",
-    bestseller: true
+    price: 2200,
+    originalPrice: 2500,
+    stock: 18,
+    status: "active",
+    rating: 4.8,
+    reviews: 51,
+    image: [mbongo_tchobi],
+    tags: ["Traditional", "Stew", "East"],
+    ingredients: ["Fish", "Mbongo spice", "Palm oil", "Tomato", "Onion"],
+    allergens: ["Fish"],
+    preparationTime: "40-50 minutes",
+    calories: 340,
+    createdAt: "2024-01-20",
+    updatedAt: "2024-01-25"
   },
   {
-    _id: "cm-east-2",
+    id: "PROD-006",
     name: "Kanda",
     description: "Meatballs made from groundnuts and spices, a Baka delicacy.",
-    price: 1700,
-    image: [Kanda],
     category: "East",
-    subCategory: "Baka",
-    sizes: ["Plate"],
-    date: "2024-06-19T00:00:00Z",
-    bestseller: false
+    price: 1700,
+    originalPrice: 1900,
+    stock: 22,
+    status: "active",
+    rating: 4.5,
+    reviews: 34,
+    image: [kanda],
+    tags: ["Traditional", "Meatballs", "East"],
+    ingredients: ["Groundnuts", "Beef", "Spices"],
+    allergens: ["Groundnuts"],
+    preparationTime: "30 minutes",
+    calories: 280,
+    createdAt: "2024-01-22",
+    updatedAt: "2024-01-28"
   },
   // Far North Region
   {
-    _id: "cm-far-north-1",
+    id: "PROD-007",
     name: "Fufu and Okra Soup",
     description: "Fufu served with okra soup, a staple among the Kotoko and Mandara.",
-    price: 1600,
-    image: [FufuAndOkraSoup],
     category: "Far North",
-    subCategory: "Kotoko, Mandara",
-    sizes: ["Plate"],
-    date: "2024-06-19T00:00:00Z",
-    bestseller: true
+    price: 1600,
+    originalPrice: 1800,
+    stock: 35,
+    status: "active",
+    rating: 4.7,
+    reviews: 80,
+    image: [fufu_and_okra_soup],
+    tags: ["Traditional", "Soup", "Far North"],
+    ingredients: ["Fufu", "Okra", "Palm oil", "Fish", "Spices"],
+    allergens: ["Fish"],
+    preparationTime: "30-40 minutes",
+    calories: 310,
+    createdAt: "2024-01-25",
+    updatedAt: "2024-01-30"
   },
   {
-    _id: "cm-far-north-2",
+    id: "PROD-008",
     name: "La Bouillie",
     description: "Millet porridge, a breakfast favorite of the Fulani.",
-    price: 800,
-    image: [LaBouillie],
     category: "Far North",
-    subCategory: "Fulani",
-    sizes: ["Bowl"],
-    date: "2024-06-19T00:00:00Z",
-    bestseller: false
+    price: 800,
+    originalPrice: 900,
+    stock: 60,
+    status: "active",
+    rating: 4.4,
+    reviews: 22,
+    image: [la_bouillie],
+    tags: ["Traditional", "Porridge", "Far North"],
+    ingredients: ["Millet", "Sugar", "Milk"],
+    allergens: ["Milk"],
+    preparationTime: "20 minutes",
+    calories: 180,
+    createdAt: "2024-01-28",
+    updatedAt: "2024-02-01"
   },
   // Littoral Region
   {
-    _id: "cm-littoral-1",
-    name: "Ndolé",
+    id: "PROD-009",
+    name: "Ndolé (Duala)",
     description: "Bitterleaf and groundnut stew, a signature dish of the Duala tribe.",
-    price: 2500,
-    image: [Ndole],
     category: "Littoral",
-    subCategory: "Duala",
-    sizes: ["Plate"],
-    date: "2024-06-19T00:00:00Z",
-    bestseller: true
+    price: 2500,
+    originalPrice: 2800,
+    stock: 45,
+    status: "active",
+    rating: 4.9,
+    reviews: 140,
+    image: [ndole],
+    tags: ["Traditional", "Stew", "Littoral"],
+    ingredients: ["Bitter leaves", "Groundnuts", "Meat", "Fish", "Palm oil"],
+    allergens: ["Groundnuts"],
+    preparationTime: "40-50 minutes",
+    calories: 350,
+    createdAt: "2024-02-01",
+    updatedAt: "2024-02-05"
   },
   {
-    _id: "cm-littoral-2",
-    name: "Mbongo Tchobi",
+    id: "PROD-010",
+    name: "Mbongo Tchobi (Bakoko)",
     description: "Black stew with fish, a favorite among the Bakoko.",
-    price: 2200,
-    image: [MbongoTchobi],
     category: "Littoral",
-    subCategory: "Bakoko",
-    sizes: ["Plate"],
-    date: "2024-06-19T00:00:00Z",
-    bestseller: false
+    price: 2200,
+    originalPrice: 2500,
+    stock: 30,
+    status: "active",
+    rating: 4.8,
+    reviews: 40,
+    image: [mbongo_tchobi],
+    tags: ["Traditional", "Stew", "Littoral"],
+    ingredients: ["Fish", "Mbongo spice", "Palm oil", "Tomato", "Onion"],
+    allergens: ["Fish"],
+    preparationTime: "40-50 minutes",
+    calories: 340,
+    createdAt: "2024-02-05",
+    updatedAt: "2024-02-10"
   },
   // North Region
   {
-    _id: "cm-north-1",
-    name: "Kossam",
+    id: "PROD-011",
+    name: "Kossam (Fulani)",
     description: "Fermented milk, a Fulani specialty.",
-    price: 1000,
-    image: [Kossam],
     category: "North",
-    subCategory: "Fulani",
-    sizes: ["Bottle"],
-    date: "2024-06-19T00:00:00Z",
-    bestseller: true
+    price: 1000,
+    originalPrice: 1200,
+    stock: 50,
+    status: "active",
+    rating: 4.9,
+    reviews: 100,
+    image: [kossam],
+    tags: ["Traditional", "Drink", "North"],
+    ingredients: ["Milk", "Spices"],
+    allergens: ["Milk"],
+    preparationTime: "15 minutes",
+    calories: 100,
+    createdAt: "2024-02-10",
+    updatedAt: "2024-02-15"
   },
   {
-    _id: "cm-north-2",
-    name: "Djama Djama",
+    id: "PROD-012",
+    name: "Djama Djama (Toupouri)",
     description: "Huckleberry leaves cooked with groundnut paste, enjoyed by the Toupouri.",
-    price: 1500,
-    image: [DjamaDjama],
     category: "North",
-    subCategory: "Toupouri",
-    sizes: ["Plate"],
-    date: "2024-06-19T00:00:00Z",
-    bestseller: false
+    price: 1500,
+    originalPrice: 1700,
+    stock: 40,
+    status: "active",
+    rating: 4.7,
+    reviews: 60,
+    image: [djama_djama],
+    tags: ["Traditional", "Soup", "North"],
+    ingredients: ["Huckleberry leaves", "Groundnut paste", "Palm oil", "Meat", "Fish"],
+    allergens: ["Groundnut paste"],
+    preparationTime: "30-40 minutes",
+    calories: 300,
+    createdAt: "2024-02-15",
+    updatedAt: "2024-02-20"
   },
   // Northwest Region
   {
-    _id: "cm-northwest-1",
-    name: "Achu and Yellow Soup",
+    id: "PROD-013",
+    name: "Achu and Yellow Soup (Bamenda Grassfields)",
     description: "Pounded cocoyams with spicy yellow soup, a traditional meal of the Bamenda Grassfields tribes.",
-    price: 3000,
-    image: [AchuAndYellowSoup],
     category: "Northwest",
-    subCategory: "Bamenda, Kom, Nso",
-    sizes: ["Plate"],
-    date: "2024-06-19T00:00:00Z",
-    bestseller: true
+    price: 3000,
+    originalPrice: 3500,
+    stock: 20,
+    status: "active",
+    rating: 4.9,
+    reviews: 30,
+    image: [achu_and_yellow_soup],
+    tags: ["Traditional", "Soup", "Northwest"],
+    ingredients: ["Cocoyam", "Yellow soup", "Palm oil", "Meat", "Fish"],
+    allergens: ["Fish"],
+    preparationTime: "40-50 minutes",
+    calories: 380,
+    createdAt: "2024-02-20",
+    updatedAt: "2024-02-25"
   },
   {
-    _id: "cm-northwest-2",
-    name: "Corn Fufu and Njama Njama",
+    id: "PROD-014",
+    name: "Corn Fufu and Njama Njama (Kom and Nso)",
     description: "Corn fufu served with huckleberry leaves, a Kom and Nso favorite.",
-    price: 1800,
-    image: [CornFufuAndNjamaNjama],
     category: "Northwest",
-    subCategory: "Kom, Nso",
-    sizes: ["Plate"],
-    date: "2024-06-19T00:00:00Z",
-    bestseller: false
+    price: 1800,
+    originalPrice: 2000,
+    stock: 25,
+    status: "active",
+    rating: 4.8,
+    reviews: 45,
+    image: [corn_fufu_and_njama_njama],
+    tags: ["Traditional", "Fufu", "Northwest"],
+    ingredients: ["Corn fufu", "Huckleberry leaves", "Palm oil", "Meat", "Fish"],
+    allergens: ["Fish"],
+    preparationTime: "30-40 minutes",
+    calories: 320,
+    createdAt: "2024-02-25",
+    updatedAt: "2024-03-02"
   },
   // West Region
   {
-    _id: "cm-west-1",
-    name: "Koki",
+    id: "PROD-015",
+    name: "Koki (Bamileke)",
     description: "Steamed black-eyed pea pudding, a Bamileke delicacy.",
-    price: 2000,
-    image: [Koki],
     category: "West",
-    subCategory: "Bamileke",
-    sizes: ["Wrap"],
-    date: "2024-06-19T00:00:00Z",
-    bestseller: true
+    price: 2000,
+    originalPrice: 2200,
+    stock: 15,
+    status: "active",
+    rating: 4.9,
+    reviews: 25,
+    image: [koki],
+    tags: ["Traditional", "Pudding", "West"],
+    ingredients: ["Black-eyed peas", "Palm oil", "Meat", "Fish"],
+    allergens: ["Black-eyed peas"],
+    preparationTime: "30-40 minutes",
+    calories: 280,
+    createdAt: "2024-03-01",
+    updatedAt: "2024-03-06"
   },
   {
-    _id: "cm-west-2",
-    name: "Taro and Yellow Sauce",
+    id: "PROD-016",
+    name: "Taro and Yellow Sauce (Bafut and Bamileke)",
     description: "Taro root served with spicy yellow sauce, a Bafut and Bamileke specialty.",
-    price: 2500,
-    image: [TaroAndYellowSauce],
     category: "West",
-    subCategory: "Bafut, Bamileke",
-    sizes: ["Plate"],
-    date: "2024-06-19T00:00:00Z",
-    bestseller: false
+    price: 2500,
+    originalPrice: 2800,
+    stock: 10,
+    status: "active",
+    rating: 4.7,
+    reviews: 15,
+    image: [taro_and_yellow_sauce],
+    tags: ["Traditional", "Sauce", "West"],
+    ingredients: ["Taro", "Yellow sauce", "Palm oil", "Meat", "Fish"],
+    allergens: ["Fish"],
+    preparationTime: "20-30 minutes",
+    calories: 250,
+    createdAt: "2024-03-05",
+    updatedAt: "2024-03-10"
   },
   // South Region
   {
-    _id: "cm-south-1",
-    name: "Ekwang",
+    id: "PROD-017",
+    name: "Ekwang (Bulu and Fang)",
     description: "Grated cocoyams wrapped in leaves and cooked with palm oil, a Bulu and Fang delicacy.",
-    price: 2200,
-    image: [Ekwang],
     category: "South",
-    subCategory: "Bulu, Fang",
-    sizes: ["Plate"],
-    date: "2024-06-19T00:00:00Z",
-    bestseller: true
+    price: 2200,
+    originalPrice: 2500,
+    stock: 20,
+    status: "active",
+    rating: 4.9,
+    reviews: 20,
+    image: [ekwang],
+    tags: ["Traditional", "Stew", "South"],
+    ingredients: ["Cocoyam", "Palm oil", "Meat", "Fish"],
+    allergens: ["Fish"],
+    preparationTime: "30-40 minutes",
+    calories: 300,
+    createdAt: "2024-03-10",
+    updatedAt: "2024-03-15"
   },
   {
-    _id: "cm-south-2",
-    name: "Bongo Chobi",
+    id: "PROD-018",
+    name: "Bongo Chobi (Beti)",
     description: "Spicy black sauce with fish, a Beti favorite.",
-    price: 2100,
-    image: [BongoChobi],
     category: "South",
-    subCategory: "Beti",
-    sizes: ["Plate"],
-    date: "2024-06-19T00:00:00Z",
-    bestseller: false
+    price: 2100,
+    originalPrice: 2300,
+    stock: 15,
+    status: "active",
+    rating: 4.8,
+    reviews: 10,
+    image: [bongo_chobi],
+    tags: ["Traditional", "Sauce", "South"],
+    ingredients: ["Fish", "Palm oil", "Spices"],
+    allergens: ["Fish"],
+    preparationTime: "20-30 minutes",
+    calories: 200,
+    createdAt: "2024-03-15",
+    updatedAt: "2024-03-20"
   },
   // Southwest Region
   {
-    _id: "cm-southwest-1",
-    name: "Eru and Waterfufu",
+    id: "PROD-019",
+    name: "Eru and Waterfufu (Bayangi and Bakweri)",
     description: "Eru leaves cooked with waterleaf and served with waterfufu, a Bayangi and Bakweri specialty.",
-    price: 2500,
-    image: [EruAndWaterfufu],
     category: "Southwest",
-    subCategory: "Bayangi, Bakweri",
-    sizes: ["Plate"],
-    date: "2024-06-19T00:00:00Z",
-    bestseller: true
+    price: 2500,
+    originalPrice: 2800,
+    stock: 10,
+    status: "active",
+    rating: 4.9,
+    reviews: 10,
+    image: [eru_and_waterfufu],
+    tags: ["Traditional", "Stew", "Southwest"],
+    ingredients: ["Eru leaves", "Waterleaf", "Waterfufu", "Palm oil", "Meat", "Fish"],
+    allergens: ["Fish"],
+    preparationTime: "30-40 minutes",
+    calories: 320,
+    createdAt: "2024-03-20",
+    updatedAt: "2024-03-25"
   },
   {
-    _id: "cm-southwest-2",
-    name: "Kwacoco Bible",
+    id: "PROD-020",
+    name: "Kwacoco Bible (Bakweri)",
     description: "Grated cocoyam mixed with fish and spices, wrapped in leaves. Popular among the Bakweri.",
-    price: 2000,
-    image: [KwacocoBible],
     category: "Southwest",
-    subCategory: "Bakweri",
-    sizes: ["Wrap"],
-    date: "2024-06-19T00:00:00Z",
-    bestseller: false
+    price: 2000,
+    originalPrice: 2200,
+    stock: 8,
+    status: "active",
+    rating: 4.8,
+    reviews: 8,
+    image: [kwacoco_bible],
+    tags: ["Traditional", "Stew", "Southwest"],
+    ingredients: ["Cocoyam", "Fish", "Spices", "Palm oil"],
+    allergens: ["Fish"],
+    preparationTime: "30-40 minutes",
+    calories: 280,
+    createdAt: "2024-03-25",
+    updatedAt: "2024-04-01"
   }
 ];

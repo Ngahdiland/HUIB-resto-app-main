@@ -1,6 +1,7 @@
 "use client";
 import React, { useState } from 'react';
 import { FaSearch, FaFilter, FaEye, FaEdit, FaTrash, FaPlus, FaDownload, FaUpload } from 'react-icons/fa';
+import { products } from '@/public/assets/assets';
 
 const ManageProducts = () => {
   const [searchTerm, setSearchTerm] = useState('');
