@@ -357,6 +357,50 @@ const Dashboard = () => {
     }
   };
 
+  // Sample users
+  const users = [
+    { id: 1, name: 'John Doe', email: 'john@example.com', role: 'User', status: 'active' },
+    { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'User', status: 'active' },
+    { id: 3, name: 'Mike Johnson', email: 'mike@example.com', role: 'User', status: 'inactive' },
+  ];
+
+  // Generate CSV report
+  function handleGenerateReport() {
+    // Example: Orders, Products, Users
+    let csv = '';
+    // Orders
+    csv += 'Orders\n';
+    csv += 'Order ID,Customer,Items,Total,Status,Date\n';
+    recentOrders.forEach(order => {
+      csv += `${order.id},${order.customer},${order.items},${order.total},${order.status},${order.date}\n`;
+    });
+    csv += '\n';
+    // Top Products
+    csv += 'Top Products\n';
+    csv += 'Product,Sales,Revenue\n';
+    topProducts.forEach(p => {
+      csv += `${p.name},${p.sales},${p.revenue}\n`;
+    });
+    csv += '\n';
+    // Users
+    csv += 'Users\n';
+    csv += 'Name,Email,Role,Status\n';
+    users.forEach(u => {
+      csv += `${u.name},${u.email},${u.role},${u.status}\n`;
+    });
+    csv += '\n';
+    // Download
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `dashboard_report_${new Date().toISOString().slice(0,10)}.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -366,7 +410,7 @@ const Dashboard = () => {
           <p className="text-gray-600">Welcome back! Here's what's happening with your business.</p>
         </div>
         <div className="flex gap-3">
-          <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors">
+          <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors" onClick={handleGenerateReport}>
             Generate Report
           </button>
         </div>
@@ -487,9 +531,9 @@ const Dashboard = () => {
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-gray-800">Recent Orders</h3>
-            <button className="text-red-600 hover:text-red-700 text-sm font-medium">
+            <a href="/manage-orders" className="text-red-600 hover:text-red-700 text-sm font-medium">
               View All Orders
-            </button>
+            </a>
           </div>
         </div>
         <div className="overflow-x-auto">
