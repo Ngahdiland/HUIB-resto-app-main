@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { FaSearch, FaFilter, FaEye, FaEdit, FaTrash, FaDownload, FaPrint } from 'react-icons/fa';
+import { FaSearch, FaFilter, FaEye, FaEdit, FaTrash, FaDownload, FaPrint, FaLock } from 'react-icons/fa';
 
 // Sample orders data
 const orders = [
@@ -385,6 +385,9 @@ const ManageOrders = () => {
                   ) : (
                     <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
                       {order.status ? order.status.charAt(0).toUpperCase() + order.status.slice(1) : 'N/A'}
+                      {['delivered','cancelled'].includes(order.status) && (
+                        <FaLock className="inline ml-2 text-gray-400" title="Order is locked and cannot be updated" />
+                      )}
                     </span>
                   )}
                 </td>
