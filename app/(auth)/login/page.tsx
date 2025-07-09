@@ -9,6 +9,7 @@ export default function AuthPage() {
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPassword, setLoginPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -17,6 +18,8 @@ export default function AuthPage() {
       alert('Please enter both email and password.');
       return;
     }
+    
+    setIsLoading(true);
     try {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
@@ -40,6 +43,8 @@ export default function AuthPage() {
       }
     } catch (err) {
       alert('Server error.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -52,7 +57,14 @@ export default function AuthPage() {
             <h1 className="text-3xl font-bold text-red-600 mb-4">Login</h1>
             <div>
               <label className="block mb-1 font-semibold">Email</label>
-              <input type="email" className="w-full border border-red-300 rounded px-4 py-2" value={loginEmail} onChange={e => setLoginEmail(e.target.value)} required />
+              <input 
+                type="email" 
+                className="w-full border border-red-300 rounded px-4 py-2" 
+                value={loginEmail} 
+                onChange={e => setLoginEmail(e.target.value)} 
+                required 
+                disabled={isLoading}
+              />
             </div>
             <div>
               <label className="block mb-1 font-semibold">Password</label>
@@ -63,6 +75,7 @@ export default function AuthPage() {
                   value={loginPassword}
                   onChange={e => setLoginPassword(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
                 <button
                   type="button"
@@ -70,12 +83,22 @@ export default function AuthPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   tabIndex={-1}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  disabled={isLoading}
                 >
                   {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
                 </button>
               </div>
             </div>
-            <Button type="submit">Login</Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Logging in...
+                </div>
+              ) : (
+                'Login'
+              )}
+            </Button>
             <div className="mt-4 text-center">
               <span className="text-gray-700">Don't have an account?</span>{' '}
               <a href="/register" className="text-red-600 hover:underline">Register</a>

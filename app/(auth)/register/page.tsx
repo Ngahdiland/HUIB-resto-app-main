@@ -11,6 +11,7 @@ export default function RegisterPage() {
   const [address, setAddress] = useState('');
   const [region, setRegion] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,6 +20,8 @@ export default function RegisterPage() {
       alert('Please fill in all fields.');
       return;
     }
+    
+    setIsLoading(true);
     try {
       const res = await fetch('/api/auth/register', {
         method: 'POST',
@@ -53,6 +56,8 @@ export default function RegisterPage() {
       }
     } catch (err) {
       alert('Server error.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -64,23 +69,57 @@ export default function RegisterPage() {
             <h1 className="text-3xl font-bold text-red-600 mb-4">Register</h1>
             <div>
               <label className="block mb-1 font-semibold">Name</label>
-              <input type="text" className="w-full border border-red-300 rounded px-4 py-2" value={name} onChange={e => setName(e.target.value)} required />
+              <input 
+                type="text" 
+                className="w-full border border-red-300 rounded px-4 py-2" 
+                value={name} 
+                onChange={e => setName(e.target.value)} 
+                required 
+                disabled={isLoading}
+              />
             </div>
             <div>
               <label className="block mb-1 font-semibold">Email</label>
-              <input type="email" className="w-full border border-red-300 rounded px-4 py-2" value={email} onChange={e => setEmail(e.target.value)} required />
+              <input 
+                type="email" 
+                className="w-full border border-red-300 rounded px-4 py-2" 
+                value={email} 
+                onChange={e => setEmail(e.target.value)} 
+                required 
+                disabled={isLoading}
+              />
             </div>
             <div>
               <label className="block mb-1 font-semibold">Phone</label>
-              <input type="text" className="w-full border border-red-300 rounded px-4 py-2" value={phone} onChange={e => setPhone(e.target.value)} required />
+              <input 
+                type="text" 
+                className="w-full border border-red-300 rounded px-4 py-2" 
+                value={phone} 
+                onChange={e => setPhone(e.target.value)} 
+                required 
+                disabled={isLoading}
+              />
             </div>
             <div>
               <label className="block mb-1 font-semibold">Address</label>
-              <input type="text" className="w-full border border-red-300 rounded px-4 py-2" value={address} onChange={e => setAddress(e.target.value)} required />
+              <input 
+                type="text" 
+                className="w-full border border-red-300 rounded px-4 py-2" 
+                value={address} 
+                onChange={e => setAddress(e.target.value)} 
+                required 
+                disabled={isLoading}
+              />
             </div>
             <div>
               <label className="block mb-1 font-semibold">Region</label>
-              <select className="w-full border border-red-300 rounded px-4 py-2" value={region} onChange={e => setRegion(e.target.value)} required>
+              <select 
+                className="w-full border border-red-300 rounded px-4 py-2" 
+                value={region} 
+                onChange={e => setRegion(e.target.value)} 
+                required
+                disabled={isLoading}
+              >
                 <option value="">Select a region</option>
                 <option value="Adamawa">Adamawa</option>
                 <option value="Centre">Centre</option>
@@ -104,6 +143,7 @@ export default function RegisterPage() {
                   value={password}
                   onChange={e => setPassword(e.target.value)}
                   required
+                  disabled={isLoading}
                 />
                 <button
                   type="button"
@@ -111,12 +151,22 @@ export default function RegisterPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   tabIndex={-1}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  disabled={isLoading}
                 >
                   {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
                 </button>
               </div>
             </div>
-            <Button type="submit">Register</Button>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? (
+                <div className="flex items-center justify-center">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Registering...
+                </div>
+              ) : (
+                'Register'
+              )}
+            </Button>
             <div className="mt-4 text-center">
               <span className="text-gray-700">Have an account?</span>{' '}
               <a href="/login" className="text-red-600 hover:underline">Login</a>
