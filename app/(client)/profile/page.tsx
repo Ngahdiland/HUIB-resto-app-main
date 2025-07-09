@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { FaEdit, FaSave, FaTimes, FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaClock, FaCheck, FaTruck } from 'react-icons/fa';
+import { FaEdit, FaSave, FaTimes, FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaClock, FaCheck, FaTruck, FaComment, FaStar } from 'react-icons/fa';
 
 interface User {
   id?: string;
@@ -44,6 +44,15 @@ const Profile = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('profile');
+  const [showFeedbackForm, setShowFeedbackForm] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [feedbackForm, setFeedbackForm] = useState({
+    name: '',
+    topic: '',
+    feedback: ''
+  });
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
+  const [feedbackMessage, setFeedbackMessage] = useState('');
 
   useEffect(() => {
     // Load user from localStorage
@@ -96,6 +105,53 @@ const Profile = () => {
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     }
+  };
+
+  const handleLeaveFeedback = (order: Order) => {
+    setSelectedOrder(order);
+    setFeedbackForm({
+      name: user?.name || '',
+      topic: '',
+      feedback: ''
+    });
+    setShowFeedbackForm(true);
+    setFeedbackMessage('');
+  };
+
+  const handleFeedbackSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmittingFeedback(true);
+    setFeedbackMessage('');
+
+    try {
+      const response = await fetch('/api/feedbacks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...feedbackForm,
+          orderId: selectedOrder?.id
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setFeedbackMessage('Thank you! Your feedback has been submitted and is pending approval.');
+        setFeedbackForm({ name: '', topic: '', feedback: '' });
+        setShowFeedbackForm(false);
+        setSelectedOrder(null);
+      } else {
+        setFeedbackMessage(data.error || 'Failed to submit feedback. Please try again.');
+      }
+    } catch (error) {
+      setFeedbackMessage('Failed to submit feedback. Please try again.');
+    } finally {
+      setSubmittingFeedback(false);
+    }
+  };
+
+  const handleFeedbackChange = (field: string, value: string) => {
+    setFeedbackForm(prev => ({ ...prev, [field]: value }));
   };
 
   const getStatusColor = (status: string) => {
@@ -314,10 +370,19 @@ const Profile = () => {
                   ))}
                 </div>
                 
-                <div className="border-t pt-4">
+                <div className="border-t pt-4 flex justify-between items-center">
                   <button className="text-red-600 hover:text-red-800 transition-colors text-sm font-semibold">
                     View Details
                   </button>
+                  {order.status === 'delivered' && (
+                    <button
+                      onClick={() => handleLeaveFeedback(order)}
+                      className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2 text-sm"
+                    >
+                      <FaComment />
+                      Leave a Review
+                    </button>
+                  )}
                 </div>
               </div>
             ))}
@@ -352,6 +417,92 @@ const Profile = () => {
                   </div>
                 ))
               )}
+            </div>
+          </div>
+        )}
+
+        {/* Feedback Modal */}
+        {showFeedbackForm && selectedOrder && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md mx-4">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-gray-800">Leave Feedback</h2>
+                <button
+                  onClick={() => setShowFeedbackForm(false)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  <FaTimes />
+                </button>
+              </div>
+              
+              <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                <p className="text-sm text-gray-600">Order #{selectedOrder.id}</p>
+                <p className="text-sm text-gray-600">{new Date(selectedOrder.date).toLocaleDateString()}</p>
+              </div>
+
+              <form onSubmit={handleFeedbackSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                  <input
+                    type="text"
+                    value={feedbackForm.name}
+                    onChange={(e) => handleFeedbackChange('name', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Topic</label>
+                  <input
+                    type="text"
+                    value={feedbackForm.topic}
+                    onChange={(e) => handleFeedbackChange('topic', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    placeholder="e.g., Food Quality, Delivery Service, etc."
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Feedback</label>
+                  <textarea
+                    value={feedbackForm.feedback}
+                    onChange={(e) => handleFeedbackChange('feedback', e.target.value)}
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                    placeholder="Share your experience with this order..."
+                    required
+                  />
+                </div>
+
+                {feedbackMessage && (
+                  <div className={`p-3 rounded-lg ${
+                    feedbackMessage.includes('Thank you') 
+                      ? 'bg-green-100 text-green-700' 
+                      : 'bg-red-100 text-red-700'
+                  }`}>
+                    {feedbackMessage}
+                  </div>
+                )}
+
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowFeedbackForm(false)}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={submittingFeedback}
+                    className="flex-1 bg-red-600 text-white py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {submittingFeedback ? 'Submitting...' : 'Submit Feedback'}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}

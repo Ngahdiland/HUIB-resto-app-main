@@ -1,205 +1,109 @@
 "use client";
-import React, { useState } from 'react';
-import { FaSearch, FaFilter, FaEye, FaReply, FaStar, FaDownload, FaPrint, FaThumbsUp, FaThumbsDown, FaComment } from 'react-icons/fa';
+import React, { useState, useEffect } from 'react';
+import { FaSearch, FaFilter, FaEye, FaReply, FaTrash, FaStar, FaDownload, FaPrint, FaThumbsUp, FaThumbsDown, FaComment, FaCheck, FaTimes } from 'react-icons/fa';
 
 const Feedbacks = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [ratingFilter, setRatingFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [typeFilter, setTypeFilter] = useState('all');
   const [currentPage, setCurrentPage] = useState(1);
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [selectedFeedback, setSelectedFeedback] = useState(null);
   const feedbacksPerPage = 6;
 
-  // Sample feedbacks data
-  const feedbacks = [
-    {
-      id: 'FB-001',
-      customer: {
-        name: 'John Doe',
-        email: 'john@example.com',
-        avatar: '/assets/profile.jpg'
-      },
-      orderId: 'ORD-001',
-      rating: 5,
-      title: 'Excellent Service!',
-      message: 'The food was amazing and delivery was super fast. Will definitely order again!',
-      type: 'review',
-      status: 'published',
-      date: '2024-01-15 14:30',
-      response: null,
-      responseDate: null,
-      category: 'food_quality',
-      tags: ['positive', 'delivery', 'food'],
-      helpful: 12,
-      notHelpful: 1,
-      images: ['/assets/food1.jpg'],
-      sentiment: 'positive'
-    },
-    {
-      id: 'FB-002',
-      customer: {
-        name: 'Jane Smith',
-        email: 'jane@example.com',
-        avatar: '/assets/profile.jpg'
-      },
-      orderId: 'ORD-002',
-      rating: 3,
-      title: 'Good but could be better',
-      message: 'Food was okay but took longer than expected. The packaging could be improved.',
-      type: 'review',
-      status: 'pending',
-      date: '2024-01-15 13:45',
-      response: null,
-      responseDate: null,
-      category: 'delivery',
-      tags: ['neutral', 'delivery', 'packaging'],
-      helpful: 5,
-      notHelpful: 2,
-      images: [],
-      sentiment: 'neutral'
-    },
-    {
-      id: 'FB-003',
-      customer: {
-        name: 'Mike Johnson',
-        email: 'mike@example.com',
-        avatar: '/assets/profile.jpg'
-      },
-      orderId: 'ORD-003',
-      rating: 1,
-      title: 'Very disappointed',
-      message: 'Order was wrong and customer service was unhelpful. Will not order again.',
-      type: 'complaint',
-      status: 'resolved',
-      date: '2024-01-15 13:20',
-      response: 'We apologize for the inconvenience. We have issued a full refund and will investigate the issue.',
-      responseDate: '2024-01-15 16:30',
-      category: 'customer_service',
-      tags: ['negative', 'refund', 'service'],
-      helpful: 8,
-      notHelpful: 0,
-      images: ['/assets/food2.jpg'],
-      sentiment: 'negative'
-    },
-    {
-      id: 'FB-004',
-      customer: {
-        name: 'Sarah Wilson',
-        email: 'sarah@example.com',
-        avatar: '/assets/profile.jpg'
-      },
-      orderId: 'ORD-004',
-      rating: 4,
-      title: 'Great experience overall',
-      message: 'Food was delicious and fresh. Delivery was on time. Minor issue with packaging.',
-      type: 'suggestion',
-      status: 'reviewed',
-      date: '2024-01-15 12:55',
-      response: 'Thank you for your feedback. We are working on improving our packaging.',
-      responseDate: '2024-01-15 15:20',
-      category: 'packaging',
-      tags: ['positive', 'suggestion', 'packaging'],
-      helpful: 15,
-      notHelpful: 1,
-      images: [],
-      sentiment: 'positive'
-    },
-    {
-      id: 'FB-005',
-      customer: {
-        name: 'David Brown',
-        email: 'david@example.com',
-        avatar: '/assets/profile.jpg'
-      },
-      orderId: 'ORD-005',
-      rating: 5,
-      title: 'Best pizza ever!',
-      message: 'The pizza was absolutely perfect. Crispy crust, fresh toppings, and delivered hot. 10/10!',
-      type: 'review',
-      status: 'published',
-      date: '2024-01-15 11:30',
-      response: 'Thank you for the amazing review! We\'re glad you enjoyed your pizza.',
-      responseDate: '2024-01-15 14:15',
-      category: 'food_quality',
-      tags: ['positive', 'pizza', 'delivery'],
-      helpful: 23,
-      notHelpful: 0,
-      images: ['/assets/food1.jpg', '/assets/food2.jpg'],
-      sentiment: 'positive'
-    }
-  ];
+  useEffect(() => {
+    fetchFeedbacks();
+  }, []);
 
-  const getRatingColor = (rating: number) => {
-    if (rating >= 4) return 'text-green-600';
-    if (rating >= 3) return 'text-yellow-600';
-    return 'text-red-600';
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'published': return 'bg-green-100 text-green-800';
-      case 'pending': return 'bg-yellow-100 text-yellow-800';
-      case 'reviewed': return 'bg-blue-100 text-blue-800';
-      case 'resolved': return 'bg-purple-100 text-purple-800';
-      case 'hidden': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const fetchFeedbacks = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch('/api/feedbacks');
+      if (response.ok) {
+        const data = await response.json();
+        setFeedbacks(data.feedbacks);
+      }
+    } catch (error) {
+      console.error('Error fetching feedbacks:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'review': return 'bg-blue-100 text-blue-800';
-      case 'complaint': return 'bg-red-100 text-red-800';
-      case 'suggestion': return 'bg-green-100 text-green-800';
-      case 'question': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const handleApproveFeedback = async (feedbackId: string) => {
+    try {
+      const response = await fetch(`/api/feedbacks/${feedbackId}/approve`, {
+        method: 'PUT',
+      });
+      if (response.ok) {
+        fetchFeedbacks(); // Refresh the list
+      }
+    } catch (error) {
+      console.error('Error approving feedback:', error);
     }
   };
 
-  const getSentimentColor = (sentiment: string) => {
-    switch (sentiment) {
-      case 'positive': return 'bg-green-100 text-green-800';
-      case 'negative': return 'bg-red-100 text-red-800';
-      case 'neutral': return 'bg-yellow-100 text-yellow-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const handleRejectFeedback = async (feedbackId: string) => {
+    try {
+      const response = await fetch(`/api/feedbacks/${feedbackId}/reject`, {
+        method: 'PUT',
+      });
+      if (response.ok) {
+        fetchFeedbacks(); // Refresh the list
+      }
+    } catch (error) {
+      console.error('Error rejecting feedback:', error);
     }
   };
 
-  const renderStars = (rating: number) => {
-    return Array.from({ length: 5 }, (_, i) => (
-      <FaStar
-        key={i}
-        className={`${i < rating ? 'text-yellow-400' : 'text-gray-300'} text-sm`}
-      />
-    ));
+  const handleDeleteFeedback = async (feedbackId: string) => {
+    if (!confirm('Are you sure you want to delete this feedback?')) return;
+    
+    try {
+      const response = await fetch(`/api/feedbacks/${feedbackId}`, {
+        method: 'DELETE',
+      });
+      if (response.ok) {
+        fetchFeedbacks(); // Refresh the list
+      }
+    } catch (error) {
+      console.error('Error deleting feedback:', error);
+    }
+  };
+
+  const getStatusColor = (feedback: any) => {
+    if (feedback.approved) return 'bg-green-100 text-green-800';
+    if (feedback.rejected) return 'bg-red-100 text-red-800';
+    return 'bg-yellow-100 text-yellow-800';
+  };
+
+  const getStatusText = (feedback: any) => {
+    if (feedback.approved) return 'Approved';
+    if (feedback.rejected) return 'Rejected';
+    return 'Pending';
   };
 
   const filteredFeedbacks = feedbacks.filter(feedback => {
-    const matchesSearch = feedback.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         feedback.message.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         feedback.customer.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRating = ratingFilter === 'all' || 
-                         (ratingFilter === '5' && feedback.rating === 5) ||
-                         (ratingFilter === '4' && feedback.rating === 4) ||
-                         (ratingFilter === '3' && feedback.rating === 3) ||
-                         (ratingFilter === '2' && feedback.rating === 2) ||
-                         (ratingFilter === '1' && feedback.rating === 1);
-    const matchesStatus = statusFilter === 'all' || feedback.status === statusFilter;
-    const matchesType = typeFilter === 'all' || feedback.type === typeFilter;
-    return matchesSearch && matchesRating && matchesStatus && matchesType;
+    const matchesSearch = feedback.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         feedback.topic.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         feedback.feedback.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || 
+                         (statusFilter === 'pending' && !feedback.approved && !feedback.rejected) ||
+                         (statusFilter === 'approved' && feedback.approved) ||
+                         (statusFilter === 'rejected' && feedback.rejected);
+    return matchesSearch && matchesStatus;
   });
 
-  const averageRating = feedbacks.reduce((sum, f) => sum + f.rating, 0) / feedbacks.length;
-  const totalReviews = feedbacks.filter(f => f.type === 'review').length;
-  const totalComplaints = feedbacks.filter(f => f.type === 'complaint').length;
-  const resolvedComplaints = feedbacks.filter(f => f.type === 'complaint' && f.status === 'resolved').length;
+  const totalFeedbacks = feedbacks.length;
+  const approvedFeedbacks = feedbacks.filter(f => f.approved).length;
+  const pendingFeedbacks = feedbacks.filter(f => !f.approved && !f.rejected).length;
+  const rejectedFeedbacks = feedbacks.filter(f => f.rejected).length;
 
   // Export feedbacks as CSV
   const handleExport = () => {
-    let csv = 'id,customer_name,customer_email,orderId,rating,title,message,type,status,date,response,responseDate,category,tags,helpful,notHelpful,sentiment\n';
+    let csv = 'id,name,topic,feedback,orderId,date,status\n';
     filteredFeedbacks.forEach(fb => {
-      const tagsStr = fb.tags.join('|');
-      csv += `${fb.id},${fb.customer.name},${fb.customer.email},${fb.orderId},${fb.rating},"${fb.title.replace(/"/g, '""')}","${fb.message.replace(/"/g, '""')}",${fb.type},${fb.status},${fb.date},"${fb.response ? fb.response.replace(/"/g, '""') : ''}",${fb.responseDate || ''},${fb.category},${tagsStr},${fb.helpful},${fb.notHelpful},${fb.sentiment}\n`;
+      csv += `${fb.id},"${fb.name.replace(/"/g, '""')}","${fb.topic.replace(/"/g, '""')}","${fb.feedback.replace(/"/g, '""')}",${fb.orderId},${fb.date},"${getStatusText(fb)}"\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -219,7 +123,7 @@ const Feedbacks = () => {
     const printWindow = window.open('', '', 'height=600,width=900');
     if (!printWindow) return;
     printWindow.document.write('<html><head><title>Print Feedbacks</title>');
-    printWindow.document.write('<style>body{font-family:sans-serif;} .feedback-card{border:1px solid #eee;padding:16px;margin-bottom:16px;border-radius:8px;} .feedback-title{font-weight:bold;font-size:1.1em;} .feedback-meta{color:#555;font-size:0.95em;margin-bottom:8px;} .feedback-message{margin-bottom:8px;} .feedback-tags{font-size:0.9em;color:#888;} .admin-response{background:#e6f0fa;padding:8px;border-radius:6px;}</style>');
+    printWindow.document.write('<style>body{font-family:sans-serif;} .feedback-card{border:1px solid #eee;padding:16px;margin-bottom:16px;border-radius:8px;} .feedback-title{font-weight:bold;font-size:1.1em;} .feedback-meta{color:#555;font-size:0.95em;margin-bottom:8px;} .feedback-message{margin-bottom:8px;}</style>');
     printWindow.document.write('</head><body >');
     printWindow.document.write(printContents);
     printWindow.document.write('</body></html>');
@@ -242,9 +146,7 @@ const Feedbacks = () => {
   // Clear filters
   const handleClearFilters = () => {
     setSearchTerm('');
-    setRatingFilter('all');
     setStatusFilter('all');
-    setTypeFilter('all');
     setCurrentPage(1);
   };
 
@@ -272,12 +174,12 @@ const Feedbacks = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex items-center">
-            <div className="p-3 rounded-full bg-yellow-100 text-yellow-600">
-              <FaStar className="text-2xl" />
+            <div className="p-3 rounded-full bg-red-100 text-red-600">
+              <FaTimes className="text-2xl" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Average Rating</p>
-              <p className="text-2xl font-bold text-gray-800">{averageRating.toFixed(1)}</p>
+              <p className="text-sm font-medium text-gray-600">Rejected</p>
+              <p className="text-2xl font-bold text-gray-800">{rejectedFeedbacks}</p>
             </div>
           </div>
         </div>
@@ -287,30 +189,30 @@ const Feedbacks = () => {
               <FaComment className="text-2xl" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Total Reviews</p>
-              <p className="text-2xl font-bold text-gray-800">{totalReviews}</p>
+              <p className="text-sm font-medium text-gray-600">Total Feedbacks</p>
+              <p className="text-2xl font-bold text-gray-800">{totalFeedbacks}</p>
             </div>
           </div>
         </div>
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex items-center">
-            <div className="p-3 rounded-full bg-red-100 text-red-600">
-              <FaThumbsDown className="text-2xl" />
+            <div className="p-3 rounded-full bg-yellow-100 text-yellow-600">
+              <FaComment className="text-2xl" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Complaints</p>
-              <p className="text-2xl font-bold text-gray-800">{totalComplaints}</p>
+              <p className="text-sm font-medium text-gray-600">Pending</p>
+              <p className="text-2xl font-bold text-gray-800">{pendingFeedbacks}</p>
             </div>
           </div>
         </div>
         <div className="bg-white rounded-lg shadow-md p-6">
           <div className="flex items-center">
             <div className="p-3 rounded-full bg-green-100 text-green-600">
-              <FaThumbsUp className="text-2xl" />
+              <FaCheck className="text-2xl" />
             </div>
             <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">Resolved</p>
-              <p className="text-2xl font-bold text-gray-800">{resolvedComplaints}</p>
+              <p className="text-sm font-medium text-gray-600">Approved</p>
+              <p className="text-2xl font-bold text-gray-800">{approvedFeedbacks}</p>
             </div>
           </div>
         </div>
@@ -333,32 +235,16 @@ const Feedbacks = () => {
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Rating</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
             <select
-              value={ratingFilter}
-              onChange={(e) => setRatingFilter(e.target.value)}
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
             >
-              <option value="all">All Ratings</option>
-              <option value="5">5 Stars</option>
-              <option value="4">4 Stars</option>
-              <option value="3">3 Stars</option>
-              <option value="2">2 Stars</option>
-              <option value="1">1 Star</option>
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
-            <select
-              value={typeFilter}
-              onChange={(e) => setTypeFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-            >
-              <option value="all">All Types</option>
-              <option value="review">Review</option>
-              <option value="complaint">Complaint</option>
-              <option value="suggestion">Suggestion</option>
-              <option value="question">Question</option>
+              <option value="all">All Status</option>
+              <option value="pending">Pending</option>
+              <option value="approved">Approved</option>
+              <option value="rejected">Rejected</option>
             </select>
           </div>
           <div className="flex items-end">
@@ -372,106 +258,79 @@ const Feedbacks = () => {
 
       {/* Feedbacks List */}
       <div className="space-y-4" id="feedbacks-list-print">
-        {paginatedFeedbacks.map((feedback) => (
-          <div key={feedback.id} className="bg-white rounded-lg shadow-md p-6 feedback-card">
-            <div className="flex items-start justify-between mb-4">
-              <div className="flex items-start space-x-4">
-                <img
-                  className="h-12 w-12 rounded-full object-cover"
-                  src={feedback.customer.avatar}
-                  alt={feedback.customer.name}
-                />
-                <div className="flex-1">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <h3 className="text-lg font-semibold text-gray-800 feedback-title">{feedback.title}</h3>
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getTypeColor(feedback.type)}`}>
-                      {feedback.type.charAt(0).toUpperCase() + feedback.type.slice(1)}
-                    </span>
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(feedback.status)}`}>
-                      {feedback.status.charAt(0).toUpperCase() + feedback.status.slice(1)}
-                    </span>
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getSentimentColor(feedback.sentiment)}`}>
-                      {feedback.sentiment.charAt(0).toUpperCase() + feedback.sentiment.slice(1)}
-                    </span>
-                  </div>
-                  <div className="flex items-center space-x-4 text-sm text-gray-600 mb-2 feedback-meta">
-                    <span className="font-medium">{feedback.customer.name}</span>
-                    <span>{feedback.customer.email}</span>
-                    <span>Order: {feedback.orderId}</span>
-                    <span>{feedback.date}</span>
-                  </div>
-                  <div className="flex items-center space-x-2 mb-3">
-                    <div className="flex">
-                      {renderStars(feedback.rating)}
-                    </div>
-                    <span className={`text-sm font-medium ${getRatingColor(feedback.rating)}`}> 
-                      {feedback.rating}/5
-                    </span>
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <button className="text-blue-600 hover:text-blue-900" title="View Details">
-                  <FaEye />
-                </button>
-                {!feedback.response && (
-                  <button className="text-green-600 hover:text-green-900" title="Reply">
-                    <FaReply />
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <div className="mb-4 feedback-message">
-              <p className="text-gray-700 mb-3">{feedback.message}</p>
-              {feedback.images.length > 0 && (
-                <div className="flex space-x-2 mb-3">
-                  {feedback.images.map((image, index) => (
-                    <img
-                      key={index}
-                      src={image}
-                      alt={`Feedback image ${index + 1}`}
-                      className="h-20 w-20 object-cover rounded"
-                    />
-                  ))}
-                </div>
-              )}
-              <div className="flex flex-wrap gap-1 feedback-tags">
-                {feedback.tags.map((tag, index) => (
-                  <span key={index} className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            {feedback.response && (
-              <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-4 admin-response">
-                <div className="flex items-center space-x-2 mb-2">
-                  <span className="text-sm font-medium text-blue-800">Admin Response</span>
-                  <span className="text-xs text-blue-600">{feedback.responseDate}</span>
-                </div>
-                <p className="text-blue-700">{feedback.response}</p>
-              </div>
-            )}
-
-            <div className="flex items-center justify-between text-sm text-gray-500">
-              <div className="flex items-center space-x-4">
-                <span>Category: {feedback.category.replace('_', ' ')}</span>
-                <span>Helpful: {feedback.helpful}</span>
-                <span>Not Helpful: {feedback.notHelpful}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <button className="text-green-600 hover:text-green-700">
-                  <FaThumbsUp className="text-sm" />
-                </button>
-                <button className="text-red-600 hover:text-red-700">
-                  <FaThumbsDown className="text-sm" />
-                </button>
-              </div>
-            </div>
+        {loading ? (
+          <div className="text-center py-8">
+            <div className="text-lg text-gray-600">Loading feedbacks...</div>
           </div>
-        ))}
+        ) : filteredFeedbacks.length === 0 ? (
+          <div className="text-center py-8">
+            <FaComment className="text-4xl text-gray-400 mx-auto mb-4" />
+            <p className="text-gray-500">No feedbacks found.</p>
+          </div>
+        ) : (
+          filteredFeedbacks.map((feedback) => (
+            <div key={feedback.id} className="bg-white rounded-lg shadow-md p-6 feedback-card">
+              <div className="flex items-start justify-between mb-4">
+                <div className="flex items-start space-x-4">
+                  <div className="w-12 h-12 bg-red-100 text-red-600 rounded-full flex items-center justify-center">
+                    <FaComment />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <h3 className="text-lg font-semibold text-gray-800 feedback-title">{feedback.topic}</h3>
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(feedback)}`}>
+                        {getStatusText(feedback)}
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-4 text-sm text-gray-600 mb-2 feedback-meta">
+                      <span className="font-medium">{feedback.name}</span>
+                      <span>Order: {feedback.orderId}</span>
+                      <span>{new Date(feedback.date).toLocaleDateString()}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <button 
+                    onClick={() => setSelectedFeedback(feedback)}
+                    className="text-blue-600 hover:text-blue-900" 
+                    title="View Details"
+                  >
+                    <FaEye />
+                  </button>
+                  {!feedback.approved && !feedback.rejected && (
+                    <>
+                      <button 
+                        onClick={() => handleApproveFeedback(feedback.id)}
+                        className="text-green-600 hover:text-green-900" 
+                        title="Approve"
+                      >
+                        <FaCheck />
+                      </button>
+                      <button 
+                        onClick={() => handleRejectFeedback(feedback.id)}
+                        className="text-red-600 hover:text-red-900" 
+                        title="Reject"
+                      >
+                        <FaTimes />
+                      </button>
+                    </>
+                  )}
+                  <button 
+                    onClick={() => handleDeleteFeedback(feedback.id)}
+                    className="text-gray-600 hover:text-gray-900" 
+                    title="Delete"
+                  >
+                    <FaTrash />
+                  </button>
+                </div>
+              </div>
+
+              <div className="mb-4 feedback-message">
+                <p className="text-gray-700 mb-3">{feedback.feedback}</p>
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Pagination */}
@@ -508,6 +367,60 @@ const Feedbacks = () => {
           </div>
         </div>
       </div>
+
+      {/* Feedback Detail Modal */}
+      {selectedFeedback && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg mx-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-gray-800">Feedback Details</h2>
+              <button
+                onClick={() => setSelectedFeedback(null)}
+                className="text-gray-500 hover:text-gray-700"
+              >
+                <FaTimes />
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Customer</label>
+                <p className="text-gray-900">{selectedFeedback.name}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Topic</label>
+                <p className="text-gray-900">{selectedFeedback.topic}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Order ID</label>
+                <p className="text-gray-900">{selectedFeedback.orderId}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Feedback</label>
+                <p className="text-gray-900">{selectedFeedback.feedback}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Status</label>
+                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(selectedFeedback)}`}>
+                  {getStatusText(selectedFeedback)}
+                </span>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Date</label>
+                <p className="text-gray-900">{new Date(selectedFeedback.date).toLocaleDateString()}</p>
+              </div>
+            </div>
+            <div className="flex justify-end mt-6">
+              <button
+                onClick={() => setSelectedFeedback(null)}
+                className="px-4 py-2 bg-gray-200 rounded mr-2"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

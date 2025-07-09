@@ -1,7 +1,7 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FaStar, FaPhone, FaEnvelope, FaMapMarkerAlt, FaArrowRight, FaCheck } from 'react-icons/fa';
+import { FaStar, FaPhone, FaEnvelope, FaMapMarkerAlt, FaArrowRight, FaCheck, FaUser, FaComment } from 'react-icons/fa';
 import ClientFooter from '@/components/client-footer';
 import { useCart } from '../../context/CartContext';
 import { products as importedProducts } from '@/public/assets/assets';
@@ -10,12 +10,73 @@ import ProductCard from '@/components/ProductCard';
 const Home = () => {
   const [email, setEmail] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [reviews, setReviews] = useState([]);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [reviewForm, setReviewForm] = useState({
+    name: '',
+    email: '',
+    rating: 5,
+    comment: ''
+  });
+  const [submittingReview, setSubmittingReview] = useState(false);
+  const [reviewMessage, setReviewMessage] = useState('');
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Newsletter subscription:', email);
     setEmail('');
     // TODO: Implement newsletter subscription
+  };
+
+  // Fetch reviews
+  useEffect(() => {
+    const fetchReviews = async () => {
+      try {
+        const response = await fetch('/api/reviews');
+        if (response.ok) {
+          const data = await response.json();
+          // Only show approved reviews
+          const approvedReviews = data.reviews.filter((review: any) => review.approved);
+          setReviews(approvedReviews);
+        }
+      } catch (error) {
+        console.error('Error fetching reviews:', error);
+      }
+    };
+
+    fetchReviews();
+  }, []);
+
+  const handleReviewSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmittingReview(true);
+    setReviewMessage('');
+
+    try {
+      const response = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(reviewForm),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setReviewMessage('Thank you! Your review has been submitted and is pending approval.');
+        setReviewForm({ name: '', email: '', rating: 5, comment: '' });
+        setShowReviewForm(false);
+      } else {
+        setReviewMessage(data.error || 'Failed to submit review. Please try again.');
+      }
+    } catch (error) {
+      setReviewMessage('Failed to submit review. Please try again.');
+    } finally {
+      setSubmittingReview(false);
+    }
+  };
+
+  const handleReviewChange = (field: string, value: string | number) => {
+    setReviewForm(prev => ({ ...prev, [field]: value }));
   };
 
   const features = [
@@ -253,6 +314,144 @@ const Home = () => {
               <h3 className="text-lg md:text-xl font-semibold text-gray-800 mb-2">Address</h3>
               <p className="text-sm md:text-base text-gray-600">123 Food Street, Cuisine City</p>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Reviews Section */}
+      <section className="py-12 md:py-16 bg-gray-50">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-8 md:mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-4">Customer Reviews</h2>
+            <p className="text-lg md:text-xl text-gray-600">What our customers say about us</p>
+          </div>
+
+          {/* Review Form */}
+          <div className="max-w-2xl mx-auto mb-8">
+            <div className="bg-white rounded-lg shadow-md p-6 md:p-8">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl md:text-2xl font-semibold text-gray-800">Leave a Review</h3>
+                <button
+                  onClick={() => setShowReviewForm(!showReviewForm)}
+                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-2"
+                >
+                  <FaComment />
+                  {showReviewForm ? 'Cancel' : 'Write Review'}
+                </button>
+              </div>
+
+              {showReviewForm && (
+                <form onSubmit={handleReviewSubmit} className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Name</label>
+                      <input
+                        type="text"
+                        value={reviewForm.name}
+                        onChange={(e) => handleReviewChange('name', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                      <input
+                        type="email"
+                        value={reviewForm.email}
+                        onChange={(e) => handleReviewChange('email', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Rating</label>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => handleReviewChange('rating', star)}
+                          className={`text-2xl ${
+                            star <= reviewForm.rating ? 'text-yellow-400' : 'text-gray-300'
+                          } hover:text-yellow-400 transition-colors`}
+                        >
+                          <FaStar />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Comment</label>
+                    <textarea
+                      value={reviewForm.comment}
+                      onChange={(e) => handleReviewChange('comment', e.target.value)}
+                      rows={4}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500"
+                      placeholder="Share your experience with us..."
+                      required
+                    />
+                  </div>
+
+                  {reviewMessage && (
+                    <div className={`p-3 rounded-lg ${
+                      reviewMessage.includes('Thank you') 
+                        ? 'bg-green-100 text-green-700' 
+                        : 'bg-red-100 text-red-700'
+                    }`}>
+                      {reviewMessage}
+                    </div>
+                  )}
+
+                  <button
+                    type="submit"
+                    disabled={submittingReview}
+                    className="w-full bg-red-600 text-white py-3 rounded-lg font-semibold hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {submittingReview ? 'Submitting...' : 'Submit Review'}
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+
+          {/* Display Reviews */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {reviews.length > 0 ? (
+              reviews.map((review: any) => (
+                <div key={review.id} className="bg-white rounded-lg shadow-md p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-10 h-10 bg-red-100 text-red-600 rounded-full flex items-center justify-center">
+                        <FaUser />
+                      </div>
+                      <div>
+                        <h4 className="font-semibold text-gray-800">{review.name}</h4>
+                        <p className="text-sm text-gray-500">{new Date(review.date).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <FaStar
+                          key={star}
+                          className={`text-sm ${
+                            star <= review.rating ? 'text-yellow-400' : 'text-gray-300'
+                          }`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  <p className="text-gray-600 text-sm leading-relaxed">{review.comment}</p>
+                </div>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-8">
+                <FaComment className="text-4xl text-gray-400 mx-auto mb-4" />
+                <p className="text-gray-500">No reviews yet. Be the first to leave a review!</p>
+              </div>
+            )}
           </div>
         </div>
       </section>

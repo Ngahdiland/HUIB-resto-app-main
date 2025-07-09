@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/navbar";
 import useAuthRedirect from '@/hooks/useAuthRedirect';
 import AuthGuard from '@/components/AuthGuard';
+import { CartProvider } from '../context/CartContext';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,11 +29,13 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="bg-white text-red-600 min-h-screen antialiased">
-        <AuthGuard>
-          <main>
-            {children}
-          </main>
-        </AuthGuard>
+        <CartProvider>
+          <AuthGuard>
+            <main>
+              {children}
+            </main>
+          </AuthGuard>
+        </CartProvider>
       </body>
     </html>
   );
