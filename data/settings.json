@@ -1,0 +1,44 @@
+{
+  "business": {
+    "name": "HuibApp Food Delivery",
+    "email": "admin@huibapp.com",
+    "phone": "+1234567890",
+    "address": "Buea",
+    "currency": "FCFA",
+    "timezone": "DOUALA",
+    "language": "English"
+  },
+  "notifications": {
+    "emailNotifications": true,
+    "smsNotifications": false,
+    "pushNotifications": true,
+    "orderAlerts": true,
+    "paymentAlerts": true,
+    "systemAlerts": true,
+    "marketingEmails": false
+  },
+  "payment": {
+    "mtnEnabled": true,
+    "orangeEnabled": true,
+    "mtnName": "Fonyuy Diland",
+    "mtnNumber": "677828170",
+    "orangeName": "Fonyuy Diland",
+    "orangeNumber": "693276653"
+  },
+  "delivery": {
+    "deliveryFee": 2.99,
+    "freeDeliveryThreshold": 25,
+    "maxDeliveryDistance": 10,
+    "deliveryTime": "30-45 minutes",
+    "allowPickup": true,
+    "allowDelivery": true
+  },
+  "security": {
+    "twoFactorAuth": false,
+    "sessionTimeout": 30,
+    "passwordExpiry": 90,
+    "failedLoginAttempts": 5,
+    "ipWhitelist": "",
+    "sslEnabled": true
+  }
+}

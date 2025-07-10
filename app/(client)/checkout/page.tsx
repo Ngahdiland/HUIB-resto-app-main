@@ -33,7 +33,26 @@ const Checkout = () => {
   const { cart, clearCart } = useCart();
   const checkoutItems = Object.values(cart);
   const [paymentMethod, setPaymentMethod] = useState('');
-  const [copiedNumber, setCopiedNumber] = useState<string | null>(null);
+  const [copiedNumber, setCopiedNumber] = useState<string>('');
+  const [paymentSettings, setPaymentSettings] = useState({ mtnEnabled: false, orangeEnabled: false, mtnName: '', mtnNumber: '', orangeName: '', orangeNumber: '' });
+
+  useEffect(() => {
+    // Fetch payment settings from API
+    const fetchSettings = async () => {
+      try {
+        const res = await fetch('/api/settings');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.payment) {
+            setPaymentSettings(data.payment);
+          }
+        }
+      } catch (err) {
+        // fallback: do nothing
+      }
+    };
+    fetchSettings();
+  }, []);
 
   // Poll for order status if user has placed an order
   useEffect(() => {
@@ -72,10 +91,10 @@ const Checkout = () => {
   };
 
   const handleCopy = (text: string) => {
-    if (!text || typeof text !== 'string') return;
+    if (!text) return;
     navigator.clipboard.writeText(text);
     setCopiedNumber(text);
-    setTimeout(() => setCopiedNumber(null), 1500);
+    setTimeout(() => setCopiedNumber(''), 1500);
   };
 
   const handleReceiptChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -417,35 +436,37 @@ const Checkout = () => {
                     required
                   >
                     <option value="">Select payment method</option>
-                    <option value="mtn">MTN Mobile Money</option>
-                    <option value="orange">Orange Money</option>
+                    {paymentSettings.mtnEnabled && <option value="mtn">MTN Mobile Money</option>}
+                    {paymentSettings.orangeEnabled && <option value="orange">Orange Money</option>}
                   </select>
                 </div>
                 {paymentMethod === 'mtn' && (
                   <div className="mb-4 bg-yellow-50 border-l-4 border-yellow-400 p-3 rounded flex items-center justify-between">
                     <div>
-                      <b>MTN Number:</b> <span id="mtn-number">677828170</span>
+                      <b>MTN Name:</b> <span id="mtn-name">{paymentSettings.mtnName}</span><br />
+                      <b>MTN Number:</b> <span id="mtn-number">{paymentSettings.mtnNumber}</span>
                     </div>
                     <button
                       className="ml-4 px-2 py-1 bg-yellow-400 text-white rounded hover:bg-yellow-500"
-                      onClick={() => handleCopy('677828170')}
+                      onClick={() => typeof paymentSettings.mtnNumber === 'string' && paymentSettings.mtnNumber !== '' && handleCopy(paymentSettings.mtnNumber)}
                       type="button"
                     >
-                      {copiedNumber === '677828170' ? 'Copied' : 'Copy'}
+                      {copiedNumber === (paymentSettings.mtnNumber || '') ? 'Copied' : 'Copy'}
                     </button>
                   </div>
                 )}
                 {paymentMethod === 'orange' && (
                   <div className="mb-4 bg-orange-50 border-l-4 border-orange-400 p-3 rounded flex items-center justify-between">
                     <div>
-                      <b>Orange Money Number:</b> <span id="orange-number">693276652</span>
+                      <b>Orange Name:</b> <span id="orange-name">{paymentSettings.orangeName}</span><br />
+                      <b>Orange Money Number:</b> <span id="orange-number">{paymentSettings.orangeNumber}</span>
                     </div>
                     <button
                       className="ml-4 px-2 py-1 bg-orange-400 text-white rounded hover:bg-orange-500"
-                      onClick={() => handleCopy('693276652')}
+                      onClick={() => typeof paymentSettings.orangeNumber === 'string' && paymentSettings.orangeNumber !== '' && handleCopy(paymentSettings.orangeNumber)}
                       type="button"
                     >
-                      {copiedNumber === '693276652' ? 'Copied' : 'Copy'}
+                      {copiedNumber === (paymentSettings.orangeNumber || '') ? 'Copied' : 'Copy'}
                     </button>
                   </div>
                 )}

@@ -28,7 +28,9 @@ const Settings = () => {
     payment: {
       mtnEnabled: true,
       orangeEnabled: true,
+      mtnName: 'Fonyuy Diland',
       mtnNumber: '677828170',
+      orangeName: 'Fonyuy Diland',
       orangeNumber: '693276652',
     },
     delivery: {
@@ -53,16 +55,19 @@ const Settings = () => {
     const loadSettings = async () => {
       try {
         setLoading(true);
-        // Here you would typically load settings from an API
-        // For now, we'll simulate loading
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        const res = await fetch('/api/settings');
+        if (res.ok) {
+          const data = await res.json();
+          if (Object.keys(data).length > 0) {
+            setSettings(data);
+          }
+        }
       } catch (error) {
         console.error('Error loading settings:', error);
       } finally {
         setLoading(false);
       }
     };
-
     loadSettings();
   }, []);
 
@@ -79,10 +84,13 @@ const Settings = () => {
   const handleSaveSettings = async () => {
     try {
       setSaving(true);
-      // Here you would typically save settings to an API
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      // Simulate API call
-      console.log('Settings saved:', settings);
+      const res = await fetch('/api/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(settings),
+      });
+      if (!res.ok) throw new Error('Failed to save settings');
+      // Optionally show a success message here
     } catch (error) {
       console.error('Error saving settings:', error);
     } finally {
@@ -319,15 +327,27 @@ const Settings = () => {
                     />
                   </div>
                   {settings.payment.mtnEnabled && (
-                    <div className="flex items-center gap-4 ml-8">
-                      <label className="block text-sm font-medium text-gray-700">MTN Number:</label>
-                      <input
-                        type="tel"
-                        value={settings.payment.mtnNumber}
-                        onChange={e => handleSettingChange('payment', 'mtnNumber', e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                        disabled={saving}
-                      />
+                    <div className="flex flex-col gap-2 ml-8">
+                      <div className="flex items-center gap-4">
+                        <label className="block text-sm font-medium text-gray-700">MTN Name:</label>
+                        <input
+                          type="text"
+                          value={settings.payment.mtnName}
+                          onChange={e => handleSettingChange('payment', 'mtnName', e.target.value)}
+                          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                          disabled={saving}
+                        />
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <label className="block text-sm font-medium text-gray-700">MTN Number:</label>
+                        <input
+                          type="tel"
+                          value={settings.payment.mtnNumber}
+                          onChange={e => handleSettingChange('payment', 'mtnNumber', e.target.value)}
+                          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                          disabled={saving}
+                        />
+                      </div>
                     </div>
                   )}
                   <div className="flex items-center justify-between">
@@ -344,15 +364,27 @@ const Settings = () => {
                     />
                   </div>
                   {settings.payment.orangeEnabled && (
-                    <div className="flex items-center gap-4 ml-8">
-                      <label className="block text-sm font-medium text-gray-700">Orange Number:</label>
-                      <input
-                        type="tel"
-                        value={settings.payment.orangeNumber}
-                        onChange={e => handleSettingChange('payment', 'orangeNumber', e.target.value)}
-                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
-                        disabled={saving}
-                      />
+                    <div className="flex flex-col gap-2 ml-8">
+                      <div className="flex items-center gap-4">
+                        <label className="block text-sm font-medium text-gray-700">Orange Name:</label>
+                        <input
+                          type="text"
+                          value={settings.payment.orangeName}
+                          onChange={e => handleSettingChange('payment', 'orangeName', e.target.value)}
+                          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                          disabled={saving}
+                        />
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <label className="block text-sm font-medium text-gray-700">Orange Number:</label>
+                        <input
+                          type="tel"
+                          value={settings.payment.orangeNumber}
+                          onChange={e => handleSettingChange('payment', 'orangeNumber', e.target.value)}
+                          className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                          disabled={saving}
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
