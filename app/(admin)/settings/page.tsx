@@ -11,9 +11,9 @@ const Settings = () => {
       name: 'HuibApp Food Delivery',
       email: 'admin@huibapp.com',
       phone: '+1234567890',
-      address: '123 Main Street, City, State 12345',
-      currency: 'USD',
-      timezone: 'America/New_York',
+      address: 'Buea',
+      currency: 'FCFA',
+      timezone: 'DOUALA',
       language: 'English'
     },
     notifications: {
@@ -26,13 +26,10 @@ const Settings = () => {
       marketingEmails: false
     },
     payment: {
-      stripeEnabled: true,
-      paypalEnabled: true,
-      cashOnDelivery: true,
-      stripePublishableKey: 'pk_test_...',
-      stripeSecretKey: 'sk_test_...',
-      paypalClientId: 'client_id_...',
-      paypalSecret: 'secret_...'
+      mtnEnabled: true,
+      orangeEnabled: true,
+      mtnNumber: '677828170',
+      orangeNumber: '693276652',
     },
     delivery: {
       deliveryFee: 2.99,
@@ -49,13 +46,6 @@ const Settings = () => {
       failedLoginAttempts: 5,
       ipWhitelist: '',
       sslEnabled: true
-    },
-    appearance: {
-      primaryColor: '#DC2626',
-      secondaryColor: '#1F2937',
-      logo: '/assets/logo.png',
-      favicon: '/assets/favicon.ico',
-      theme: 'light'
     }
   });
 
@@ -106,7 +96,7 @@ const Settings = () => {
     { id: 'payment', name: 'Payment', icon: <FaCreditCard /> },
     { id: 'delivery', name: 'Delivery', icon: <FaTruck /> },
     { id: 'security', name: 'Security', icon: <FaShieldAlt /> },
-    { id: 'appearance', name: 'Appearance', icon: <FaPalette /> }
+    // Removed appearance tab
   ];
 
   if (loading) {
@@ -317,43 +307,54 @@ const Settings = () => {
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium text-gray-800">Stripe</h4>
-                      <p className="text-sm text-gray-600">Enable Stripe payment processing</p>
+                      <h4 className="font-medium text-gray-800">MTN Mobile Money</h4>
+                      <p className="text-sm text-gray-600">Enable MTN Mobile Money payments and set the number to receive payments.</p>
                     </div>
                     <input
                       type="checkbox"
-                      checked={settings.payment.stripeEnabled}
-                      onChange={(e) => handleSettingChange('payment', 'stripeEnabled', e.target.checked)}
-                      className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                      checked={settings.payment.mtnEnabled}
+                      onChange={(e) => handleSettingChange('payment', 'mtnEnabled', e.target.checked)}
+                      className="rounded border-gray-300 text-yellow-500 focus:ring-yellow-500"
                       disabled={saving}
                     />
                   </div>
+                  {settings.payment.mtnEnabled && (
+                    <div className="flex items-center gap-4 ml-8">
+                      <label className="block text-sm font-medium text-gray-700">MTN Number:</label>
+                      <input
+                        type="tel"
+                        value={settings.payment.mtnNumber}
+                        onChange={e => handleSettingChange('payment', 'mtnNumber', e.target.value)}
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
+                        disabled={saving}
+                      />
+                    </div>
+                  )}
                   <div className="flex items-center justify-between">
                     <div>
-                      <h4 className="font-medium text-gray-800">PayPal</h4>
-                      <p className="text-sm text-gray-600">Enable PayPal payment processing</p>
+                      <h4 className="font-medium text-gray-800">Orange Money</h4>
+                      <p className="text-sm text-gray-600">Enable Orange Money payments and set the number to receive payments.</p>
                     </div>
                     <input
                       type="checkbox"
-                      checked={settings.payment.paypalEnabled}
-                      onChange={(e) => handleSettingChange('payment', 'paypalEnabled', e.target.checked)}
-                      className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+                      checked={settings.payment.orangeEnabled}
+                      onChange={(e) => handleSettingChange('payment', 'orangeEnabled', e.target.checked)}
+                      className="rounded border-gray-300 text-orange-500 focus:ring-orange-500"
                       disabled={saving}
                     />
                   </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-medium text-gray-800">Cash on Delivery</h4>
-                      <p className="text-sm text-gray-600">Allow cash on delivery payments</p>
+                  {settings.payment.orangeEnabled && (
+                    <div className="flex items-center gap-4 ml-8">
+                      <label className="block text-sm font-medium text-gray-700">Orange Number:</label>
+                      <input
+                        type="tel"
+                        value={settings.payment.orangeNumber}
+                        onChange={e => handleSettingChange('payment', 'orangeNumber', e.target.value)}
+                        className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent"
+                        disabled={saving}
+                      />
                     </div>
-                    <input
-                      type="checkbox"
-                      checked={settings.payment.cashOnDelivery}
-                      onChange={(e) => handleSettingChange('payment', 'cashOnDelivery', e.target.checked)}
-                      className="rounded border-gray-300 text-red-600 focus:ring-red-500"
-                      disabled={saving}
-                    />
-                  </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -493,48 +494,7 @@ const Settings = () => {
           )}
 
           {/* Appearance Settings */}
-          {activeTab === 'appearance' && (
-            <div className="space-y-6">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Appearance Configuration</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Primary Color</label>
-                    <input
-                      type="color"
-                      value={settings.appearance.primaryColor}
-                      onChange={(e) => handleSettingChange('appearance', 'primaryColor', e.target.value)}
-                      className="w-full h-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      disabled={saving}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Secondary Color</label>
-                    <input
-                      type="color"
-                      value={settings.appearance.secondaryColor}
-                      onChange={(e) => handleSettingChange('appearance', 'secondaryColor', e.target.value)}
-                      className="w-full h-10 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      disabled={saving}
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Theme</label>
-                    <select
-                      value={settings.appearance.theme}
-                      onChange={(e) => handleSettingChange('appearance', 'theme', e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      disabled={saving}
-                    >
-                      <option value="light">Light</option>
-                      <option value="dark">Dark</option>
-                      <option value="auto">Auto</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            </div>
-          )}
+          {activeTab === 'appearance' && null}
         </div>
       </div>
     </div>
