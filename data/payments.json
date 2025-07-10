@@ -38,7 +38,7 @@
     "userName": "Ngah Diland",
     "paymentMethod": "mtn",
     "phoneNumber": "+237691414115",
-    "status": "pending",
+    "status": "completed",
     "date": "2025-07-09T22:55:08.668Z",
     "action": "order",
     "email": "fonyuydiland@gmail.com"
@@ -49,7 +49,7 @@
     "userName": "Ngah Diland",
     "paymentMethod": "mtn",
     "phoneNumber": "+237691414115",
-    "status": "pending",
+    "status": "completed",
     "date": "2025-07-09T22:55:08.277Z",
     "action": "order",
     "email": "fonyuydiland@gmail.com"
@@ -60,7 +60,7 @@
     "userName": "Fanka ",
     "paymentMethod": "orange",
     "phoneNumber": "670036813",
-    "status": "pending",
+    "status": "completed",
     "date": "2025-07-09T23:17:28.293Z",
     "action": "order",
     "email": "fanka@gmail.com"
@@ -71,7 +71,7 @@
     "userName": "Fanka ",
     "paymentMethod": "orange",
     "phoneNumber": "670036813",
-    "status": "pending",
+    "status": "failed",
     "date": "2025-07-09T23:17:29.353Z",
     "action": "order",
     "email": "fanka@gmail.com"
@@ -82,7 +82,7 @@
     "userName": "Fanka ",
     "paymentMethod": "orange",
     "phoneNumber": "670036813",
-    "status": "pending",
+    "status": "completed",
     "date": "2025-07-09T23:17:53.677Z",
     "action": "order",
     "email": "fanka@gmail.com"
@@ -93,9 +93,20 @@
     "userName": "Fanka ",
     "paymentMethod": "orange",
     "phoneNumber": "670036813",
-    "status": "pending",
+    "status": "completed",
     "date": "2025-07-09T23:17:09.796Z",
     "action": "order",
     "email": "fanka@gmail.com"
+  },
+  {
+    "amountPaid": 7511,
+    "paymentId": "PAY-1752123911903",
+    "userName": "Ngah Diland",
+    "paymentMethod": "mtn",
+    "phoneNumber": "+237691414115",
+    "status": "completed",
+    "date": "2025-07-10T05:05:11.903Z",
+    "action": "order",
+    "email": "fonyuydiland@gmail.com"
   }
 ]

@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { FaEdit, FaSave, FaTimes, FaUser, FaEnvelope, FaPhone, FaMapMarkerAlt, FaClock, FaCheck, FaTruck, FaComment, FaStar } from 'react-icons/fa';
 import SessionManager from '@/utils/sessionManager';
+import Link from 'next/link';
 
 interface User {
   id?: string;
@@ -196,7 +197,9 @@ const Profile = () => {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-800 mb-4">Profile Not Found</h2>
-          <p className="text-gray-600">Please log in to view your profile.</p>
+          <p className="text-gray-600">
+            Please <Link href="/login" className="text-red-600 underline hover:text-red-800">log in</Link> to view your profile.
+          </p>
         </div>
       </div>
     );

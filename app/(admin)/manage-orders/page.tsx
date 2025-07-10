@@ -2,6 +2,28 @@
 import React, { useState, useEffect } from 'react';
 import { FaSearch, FaFilter, FaEye, FaEdit, FaTrash, FaDownload, FaPrint, FaLock } from 'react-icons/fa';
 
+// Add Order type
+interface Order {
+  id: string;
+  customer?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+  };
+  name?: string;
+  email?: string;
+  phone?: string;
+  items?: Array<{ name: string; quantity: number; price: number }>;
+  total?: number;
+  status: string;
+  paymentStatus?: string;
+  paymentMethod?: string;
+  orderDate?: string;
+  deliveryDate?: string | null;
+  deliveryAddress?: string;
+  notes?: string;
+}
+
 // Sample orders data
 const orders = [
   {
@@ -90,10 +112,10 @@ const ManageOrders = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
-  const [ordersState, setOrdersState] = useState([]);
-  const [viewOrder, setViewOrder] = useState(null);
-  const [editOrder, setEditOrder] = useState(null);
-  const [deleteOrder, setDeleteOrder] = useState(null);
+  const [ordersState, setOrdersState] = useState<Order[]>([]);
+  const [viewOrder, setViewOrder] = useState<Order | null>(null);
+  const [editOrder, setEditOrder] = useState<Order | null>(null);
+  const [deleteOrder, setDeleteOrder] = useState<Order | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
@@ -141,13 +163,13 @@ const ManageOrders = () => {
   };
 
   // Add this function to update order status
-  const handleStatusUpdate = async (orderId, newStatus) => {
+  const handleStatusUpdate = async (orderId: string, newStatus: string) => {
     try {
       setUpdatingStatus(orderId);
       const res = await fetch('/api/orders/update-status', {
-        method: 'POST',
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: orderId, status: newStatus }),
+        body: JSON.stringify({ orderId, newStatus }),
       });
       const data = await res.json();
       if (res.status === 200 && data.order) {
@@ -174,10 +196,10 @@ const ManageOrders = () => {
 
   // Pagination logic
   const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
-  const paginatedOrders = filteredOrders.slice((currentPage - 1) * ordersPerPage, currentPage * ordersPerPage);
+  const paginatedOrders: Order[] = filteredOrders.slice((currentPage - 1) * ordersPerPage, currentPage * ordersPerPage);
   const startIdx = filteredOrders.length === 0 ? 0 : (currentPage - 1) * ordersPerPage + 1;
   const endIdx = Math.min(currentPage * ordersPerPage, filteredOrders.length);
-  const handlePageChange = (page) => {
+  const handlePageChange = (page: number) => {
     if (page < 1 || page > totalPages) return;
     setCurrentPage(page);
   };
@@ -233,7 +255,7 @@ const ManageOrders = () => {
     printWindow.close();
   };
 
-  const handleEditSave = async (updatedOrder) => {
+  const handleEditSave = async (updatedOrder: Order) => {
     try {
       const res = await fetch('/api/orders/update', {
         method: 'PUT',
@@ -420,6 +442,7 @@ const ManageOrders = () => {
                     <div className="text-sm font-medium text-gray-900">{order.customer?.name || order.name}</div>
                     <div className="text-sm text-gray-500">{order.customer?.email || order.email}</div>
                     <div className="text-sm text-gray-500">{order.customer?.phone || order.phone}</div>
+                    {order.notes && <div className="text-sm text-gray-500">{order.notes}</div>}
                   </div>
                 </td>
                 <td className="px-6 py-4">
@@ -429,7 +452,7 @@ const ManageOrders = () => {
                         {item.name} x{item.quantity}
                       </div>
                     ))}
-                    {order.items?.length > 2 && (
+                    {order.items && order.items.length > 2 && (
                       <div className="text-gray-500">+{order.items.length - 2} more</div>
                     )}
                   </div>
@@ -439,21 +462,34 @@ const ManageOrders = () => {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="flex items-center space-x-2">
-                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
-                      {order.status}
-                    </span>
-                    {(order.status === 'delivered' || order.status === 'cancelled') && (
-                      <FaLock className="text-gray-400" title="Order cannot be edited" />
+                    {(order.status === 'pending' || order.status === 'preparing' || order.status === 'delivering') ? (
+                      <select
+                        value={order.status}
+                        onChange={e => handleStatusUpdate(order.id, e.target.value)}
+                        className={`px-2 py-1 text-xs font-semibold rounded-full border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent ${getStatusColor(order.status)}`}
+                        disabled={updatingStatus === order.id}
+                      >
+                        <option value="pending">Pending</option>
+                        <option value="preparing">Preparing</option>
+                        <option value="delivering">Delivering</option>
+                        <option value="delivered">Delivered</option>
+                        <option value="cancelled">Cancelled</option>
+                      </select>
+                    ) : (
+                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
+                        {order.status}
+                        <FaLock className="ml-2 text-gray-400" title="Order cannot be edited" />
+                      </span>
                     )}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPaymentStatusColor(order.paymentStatus)}`}>
-                    {order.paymentStatus}
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPaymentStatusColor(order.paymentStatus || '')}`}>
+                    {order.paymentStatus || ''}
                   </span>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {new Date(order.orderDate).toLocaleDateString()}
+                  {order.orderDate ? new Date(order.orderDate).toLocaleDateString() : ''}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div className="flex space-x-2">
@@ -569,10 +605,10 @@ const ManageOrders = () => {
                 <strong>Status:</strong> {viewOrder.status}
               </div>
               <div>
-                <strong>Payment Status:</strong> {viewOrder.paymentStatus}
+                <strong>Payment Status:</strong> {viewOrder.paymentStatus || ''}
               </div>
               <div>
-                <strong>Order Date:</strong> {viewOrder.orderDate}
+                <strong>Order Date:</strong> {viewOrder.orderDate ? viewOrder.orderDate : ''}
               </div>
               {viewOrder.notes && (
                 <div>
@@ -604,6 +640,7 @@ const ManageOrders = () => {
                   value={editOrder.status}
                   onChange={(e) => setEditOrder({ ...editOrder, status: e.target.value })}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  disabled={editOrder.status === 'delivered' || editOrder.status === 'cancelled'}
                 >
                   <option value="pending">Pending</option>
                   <option value="preparing">Preparing</option>

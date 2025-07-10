@@ -40,8 +40,9 @@
       }
     ],
     "total": 7943,
-    "status": "pending",
-    "date": "2025-07-09T13:49:21.698Z"
+    "status": "delivered",
+    "date": "2025-07-09T13:49:21.698Z",
+    "deliveryDate": "2025-07-10T16:29:19.906Z"
   },
   {
     "id": "ORD-1752068987798",
@@ -69,8 +70,9 @@
       }
     ],
     "total": 9671,
-    "status": "pending",
-    "date": "2025-07-09T13:49:47.798Z"
+    "status": "delivered",
+    "date": "2025-07-09T13:49:47.798Z",
+    "deliveryDate": "2025-07-10T16:29:10.183Z"
   },
   {
     "id": "ORD-1752071123180",
@@ -107,7 +109,7 @@
       }
     ],
     "total": 5459,
-    "status": "pending",
+    "status": "delivering",
     "date": "2025-07-09T14:26:04.528Z"
   },
   {
@@ -452,5 +454,34 @@
     "total": 9671,
     "status": "pending",
     "date": "2025-07-09T23:18:06.624Z"
+  },
+  {
+    "id": "ORD-1752123915064",
+    "email": "fonyuydiland@gmail.com",
+    "items": [
+      {
+        "name": "Kanda",
+        "quantity": 1,
+        "price": 1700
+      },
+      {
+        "name": "Koki Beans",
+        "quantity": 1,
+        "price": 600
+      },
+      {
+        "name": "Taro and Yellow Sauce",
+        "quantity": 1,
+        "price": 1600
+      },
+      {
+        "name": "Ndolé",
+        "quantity": 1,
+        "price": 2500
+      }
+    ],
+    "total": 7511,
+    "status": "pending",
+    "date": "2025-07-10T05:05:15.064Z"
   }
 ]
