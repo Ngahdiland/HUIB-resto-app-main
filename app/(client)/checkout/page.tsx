@@ -35,9 +35,10 @@ const Checkout = () => {
   const [paymentMethod, setPaymentMethod] = useState('');
   const [copiedNumber, setCopiedNumber] = useState<string>('');
   const [paymentSettings, setPaymentSettings] = useState({ mtnEnabled: false, orangeEnabled: false, mtnName: '', mtnNumber: '', orangeName: '', orangeNumber: '' });
+  const [deliverySettings, setDeliverySettings] = useState({ deliveryFee: 0, freeDeliveryThreshold: 0, maxDeliveryDistance: 0, deliveryTime: '', allowPickup: true, allowDelivery: true });
 
   useEffect(() => {
-    // Fetch payment settings from API
+    // Fetch payment and delivery settings from API
     const fetchSettings = async () => {
       try {
         const res = await fetch('/api/settings');
@@ -45,6 +46,9 @@ const Checkout = () => {
           const data = await res.json();
           if (data.payment) {
             setPaymentSettings(data.payment);
+          }
+          if (data.delivery) {
+            setDeliverySettings(data.delivery);
           }
         }
       } catch (err) {
@@ -78,7 +82,7 @@ const Checkout = () => {
 
   const getSubtotal = () => checkoutItems.reduce((total, item) => total + (item.product.price * item.quantity), 0);
   const getTax = () => getSubtotal() * 0.08;
-  const getDeliveryFee = () => getSubtotal() > 50000 ? 0 : 599;
+  const getDeliveryFee = () => getSubtotal() > deliverySettings.freeDeliveryThreshold ? 0 : deliverySettings.deliveryFee;
   const getTotal = () => getSubtotal() + getTax() + getDeliveryFee();
 
   const handleUserInfoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -361,7 +365,7 @@ const Checkout = () => {
                 </div>
                 {getDeliveryFee() > 0 && (
                   <div className="text-sm text-green-600 bg-green-50 p-2 rounded">
-                    Add {(50000 - getSubtotal()).toFixed(0)} FCFA more for free delivery!
+                    Add {(deliverySettings.freeDeliveryThreshold - getSubtotal()).toFixed(0)} FCFA more for free delivery!
                   </div>
                 )}
                 <div className="border-t pt-4">
@@ -369,6 +373,9 @@ const Checkout = () => {
                     <span>Total</span>
                     <span className="text-red-600">{getTotal().toFixed(0)} FCFA</span>
                   </div>
+                </div>
+                <div className="mt-4 text-sm text-gray-700">
+                  <b>Estimated Delivery Time:</b> {deliverySettings.deliveryTime}
                 </div>
               </div>
             </div>

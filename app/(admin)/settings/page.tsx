@@ -402,34 +402,40 @@ const Settings = () => {
                     <label className="block text-sm font-medium text-gray-700 mb-2">Delivery Fee (FCFA)</label>
                     <input
                       type="number"
+                      min={0}
                       value={settings.delivery.deliveryFee}
-                      onChange={(e) => handleSettingChange('delivery', 'deliveryFee', Number(e.target.value))}
+                      onChange={(e) => handleSettingChange('delivery', 'deliveryFee', Math.max(0, Number(e.target.value)))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                       disabled={saving}
                     />
+                    <p className="text-xs text-gray-500 mt-1">Set the standard delivery fee for orders below the free delivery threshold.</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Free Delivery Threshold (FCFA)</label>
                     <input
                       type="number"
+                      min={0}
                       value={settings.delivery.freeDeliveryThreshold}
-                      onChange={(e) => handleSettingChange('delivery', 'freeDeliveryThreshold', Number(e.target.value))}
+                      onChange={(e) => handleSettingChange('delivery', 'freeDeliveryThreshold', Math.max(0, Number(e.target.value)))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                       disabled={saving}
                     />
+                    <p className="text-xs text-gray-500 mt-1">Orders above this amount get free delivery.</p>
                   </div>
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Max Delivery Distance (km)</label>
                     <input
                       type="number"
+                      min={0}
                       value={settings.delivery.maxDeliveryDistance}
-                      onChange={(e) => handleSettingChange('delivery', 'maxDeliveryDistance', Number(e.target.value))}
+                      onChange={(e) => handleSettingChange('delivery', 'maxDeliveryDistance', Math.max(0, Number(e.target.value)))}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                       disabled={saving}
                     />
+                    <p className="text-xs text-gray-500 mt-1">Maximum distance for delivery from your business location.</p>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Delivery Time</label>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Estimated Delivery Time</label>
                     <input
                       type="text"
                       value={settings.delivery.deliveryTime}
@@ -437,14 +443,9 @@ const Settings = () => {
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                       disabled={saving}
                     />
+                    <p className="text-xs text-gray-500 mt-1">Displayed to customers at checkout (e.g., "30-45 minutes").</p>
                   </div>
-                </div>
-                <div className="mt-4 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-medium text-gray-800">Allow Pickup</h4>
-                      <p className="text-sm text-gray-600">Allow customers to pick up orders</p>
-                    </div>
+                  <div className="flex items-center gap-2 mt-2">
                     <input
                       type="checkbox"
                       checked={settings.delivery.allowPickup}
@@ -452,12 +453,9 @@ const Settings = () => {
                       className="rounded border-gray-300 text-red-600 focus:ring-red-500"
                       disabled={saving}
                     />
+                    <label className="text-sm font-medium text-gray-700">Allow Pickup</label>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-medium text-gray-800">Allow Delivery</h4>
-                      <p className="text-sm text-gray-600">Allow delivery to customer addresses</p>
-                    </div>
+                  <div className="flex items-center gap-2 mt-2">
                     <input
                       type="checkbox"
                       checked={settings.delivery.allowDelivery}
@@ -465,6 +463,7 @@ const Settings = () => {
                       className="rounded border-gray-300 text-red-600 focus:ring-red-500"
                       disabled={saving}
                     />
+                    <label className="text-sm font-medium text-gray-700">Allow Delivery</label>
                   </div>
                 </div>
               </div>
