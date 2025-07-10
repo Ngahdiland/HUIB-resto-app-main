@@ -245,7 +245,7 @@ const Checkout = () => {
           </p>
           <div className="flex gap-4">
             <Link 
-              href="/my-orders" 
+              href="/profile?tab=orders" 
               className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
             >
               Track Order
@@ -273,7 +273,7 @@ const Checkout = () => {
           </p>
           <div className="flex gap-4">
             <Link 
-              href="/my-orders" 
+              href="/profile?tab=orders" 
               className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
             >
               Track Order
