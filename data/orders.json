@@ -598,5 +598,20 @@
     "total": 2160,
     "status": "pending",
     "date": "2025-07-12T12:56:54.072Z"
+  },
+  {
+    "id": "ORD-1752326668109",
+    "email": "fanka@gmail.com",
+    "items": [
+      {
+        "name": "Kilishi",
+        "quantity": 1,
+        "price": 1500
+      }
+    ],
+    "total": 1620,
+    "status": "delivered",
+    "date": "2025-07-12T13:24:28.109Z",
+    "deliveryDate": "2025-07-12T13:25:45.714Z"
   }
 ]

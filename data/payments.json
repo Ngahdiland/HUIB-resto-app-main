@@ -174,5 +174,16 @@
     "date": "2025-07-12T12:56:48.231Z",
     "action": "order",
     "email": "Ruth@gmail.com"
+  },
+  {
+    "amountPaid": 1620,
+    "paymentId": "PAY-1752326667746",
+    "userName": "fanka",
+    "paymentMethod": "orange",
+    "phoneNumber": "+237691414116",
+    "status": "completed",
+    "date": "2025-07-12T13:24:27.746Z",
+    "action": "order",
+    "email": "fanka@gmail.com"
   }
 ]
