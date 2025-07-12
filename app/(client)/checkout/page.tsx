@@ -3,6 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { FaArrowLeft, FaCreditCard, FaMapMarkerAlt, FaPhone, FaEnvelope, FaLock, FaCopy, FaCheckCircle, FaUpload } from 'react-icons/fa';
 import { useCart } from '../../../context/CartContext';
+import SessionManager from '@/utils/sessionManager';
 
 interface CheckoutItem {
   id: string;
@@ -111,7 +112,8 @@ const Checkout = () => {
   // Save order to backend
   const handleSubmitPayment = async (e: React.FormEvent) => {
     e.preventDefault();
-    const user = JSON.parse(localStorage.getItem('user'));
+    const sessionManager = SessionManager.getInstance();
+    const user = sessionManager.getCurrentUser();
     if (!user) {
       alert('You must be logged in to place an order.');
       return;

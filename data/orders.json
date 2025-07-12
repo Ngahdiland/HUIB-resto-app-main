@@ -158,8 +158,9 @@
       }
     ],
     "total": 8051,
-    "status": "pending",
-    "date": "2025-07-09T14:32:53.990Z"
+    "status": "delivered",
+    "date": "2025-07-09T14:32:53.990Z",
+    "deliveryDate": "2025-07-12T11:36:56.977Z"
   },
   {
     "id": "ORD-1752071574124",
@@ -516,5 +517,86 @@
     "total": 1512,
     "status": "pending",
     "date": "2025-07-10T16:51:39.910Z"
+  },
+  {
+    "id": "ORD-1752319523945",
+    "email": "fonyuydiland@gmail.com",
+    "items": [
+      {
+        "name": "Kilishi",
+        "quantity": 1,
+        "price": 1500
+      },
+      {
+        "name": "Corn Fufu and Njama Njama",
+        "quantity": 1,
+        "price": 1400
+      },
+      {
+        "name": "Djama Djama",
+        "quantity": 1,
+        "price": 1200
+      }
+    ],
+    "total": 4428,
+    "status": "pending",
+    "date": "2025-07-12T11:25:23.945Z"
+  },
+  {
+    "id": "ORD-1752320414444",
+    "email": "fonyuydiland@gmail.com",
+    "items": [
+      {
+        "name": "Kossam",
+        "quantity": 2,
+        "price": 500
+      },
+      {
+        "name": "Kilishi",
+        "quantity": 3,
+        "price": 1500
+      }
+    ],
+    "total": 5940,
+    "status": "pending",
+    "date": "2025-07-12T11:40:14.445Z"
+  },
+  {
+    "id": "ORD-1752320527584",
+    "email": "fonyuydiland@gmail.com",
+    "items": [
+      {
+        "name": "Achu and Yellow Soup",
+        "quantity": 1,
+        "price": 1800
+      },
+      {
+        "name": "Bongo Chobi",
+        "quantity": 1,
+        "price": 1900
+      },
+      {
+        "name": "Corn Fufu and Njama Njama",
+        "quantity": 1,
+        "price": 1400
+      }
+    ],
+    "total": 5508,
+    "status": "pending",
+    "date": "2025-07-12T11:42:07.584Z"
+  },
+  {
+    "id": "ORD-1752325014072",
+    "email": "Ruth@gmail.com",
+    "items": [
+      {
+        "name": "Eru",
+        "quantity": 1,
+        "price": 2000
+      }
+    ],
+    "total": 2160,
+    "status": "pending",
+    "date": "2025-07-12T12:56:54.072Z"
   }
 ]

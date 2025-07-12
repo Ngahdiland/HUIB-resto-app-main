@@ -22,6 +22,16 @@ const Navbar = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string>('');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  // Check authentication status
+  useEffect(() => {
+    const sessionManager = SessionManager.getInstance();
+    const user = sessionManager.getCurrentUser();
+    setCurrentUser(user);
+    setIsLoggedIn(!!user);
+  }, []);
 
   // Scrollspy effect
   useEffect(() => {
@@ -55,6 +65,8 @@ const Navbar = () => {
   const handleLogout = () => {
     const sessionManager = SessionManager.getInstance();
     sessionManager.logout();
+    setCurrentUser(null);
+    setIsLoggedIn(false);
     window.location.href = '/login';
   };
 
@@ -116,15 +128,30 @@ const Navbar = () => {
 
       {/* Desktop Right Links */}
       <div className="hidden md:flex gap-4 items-center relative">
-        <button
-          className="flex items-center gap-2 text-red-600 hover:text-red-700 focus:outline-none"
-          onClick={() => setShowProfileMenu(v => !v)}
-          onBlur={() => setTimeout(() => setShowProfileMenu(false), 150)}
-        >
-          <FaUserCircle size={22} />
-          <span>Profile</span>
-        </button>
-        {showProfileMenu && (
+        <Link href="/cart" className="text-red-600 hover:text-red-700 transition-colors">
+          <FaShoppingCart size={20} />
+        </Link>
+        
+        {isLoggedIn ? (
+          <button
+            className="flex items-center gap-2 text-red-600 hover:text-red-700 focus:outline-none"
+            onClick={() => setShowProfileMenu(v => !v)}
+            onBlur={() => setTimeout(() => setShowProfileMenu(false), 150)}
+          >
+            <FaUserCircle size={22} />
+            <span>{currentUser?.name || 'Profile'}</span>
+          </button>
+        ) : (
+          <Link
+            href="/login"
+            className="flex items-center gap-2 text-red-600 hover:text-red-700 transition-colors"
+          >
+            <FaUserCircle size={22} />
+            <span>Login</span>
+          </Link>
+        )}
+        
+        {showProfileMenu && isLoggedIn && (
           <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded shadow-lg z-50">
             <Link href="/profile" className="block px-4 py-2 hover:bg-red-50 text-gray-700" onClick={() => setShowProfileMenu(false)}>
               View Profile
@@ -171,27 +198,38 @@ const Navbar = () => {
 
               {/* Mobile Right Links */}
               <div className="border-t border-gray-200 pt-4 space-y-2">
-                <button
-                  className="flex items-center gap-2 text-red-600 hover:text-red-700 w-full px-4 py-2"
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    window.location.href = '/profile';
-                  }}
-                >
-                  <FaUserCircle size={20} />
-                  View Profile
-                </button>
-                <button
-                  className="flex items-center gap-2 text-red-600 hover:text-red-700 w-full px-4 py-2"
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    const sessionManager = SessionManager.getInstance();
-                    sessionManager.logout();
-                    window.location.href = '/login';
-                  }}
-                >
-                  Logout
-                </button>
+                {isLoggedIn ? (
+                  <>
+                    <button
+                      className="flex items-center gap-2 text-red-600 hover:text-red-700 w-full px-4 py-2"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        window.location.href = '/profile';
+                      }}
+                    >
+                      <FaUserCircle size={20} />
+                      View Profile
+                    </button>
+                    <button
+                      className="flex items-center gap-2 text-red-600 hover:text-red-700 w-full px-4 py-2"
+                      onClick={() => {
+                        setIsMobileMenuOpen(false);
+                        handleLogout();
+                      }}
+                    >
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <Link
+                    href="/login"
+                    className="flex items-center gap-2 text-red-600 hover:text-red-700 w-full px-4 py-2"
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    <FaUserCircle size={20} />
+                    Login
+                  </Link>
+                )}
               </div>
             </div>
           </div>

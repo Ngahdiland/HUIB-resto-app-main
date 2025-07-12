@@ -17,6 +17,10 @@ export default function useAuthRedirect() {
     const isAdminRoute = pathname.startsWith('/dashboard') || pathname.startsWith('/manage-') || pathname.startsWith('/payments') || pathname.startsWith('/settings') || pathname.startsWith('/feedbacks') || pathname.startsWith('/general-analysys') || pathname.startsWith('/users');
     const isPublicRoute = pathname === '/' || pathname.startsWith('/menu') || pathname.startsWith('/cart') || pathname.startsWith('/checkout') || pathname.startsWith('/profile');
 
+    // Check if user is in the process of logging out (sessionStorage cleared)
+    const currentSessionId = sessionStorage.getItem('huib_current_session');
+    const isLoggingOut = !currentSessionId && user;
+
     // Not logged in: only allow login/register and public routes
     if (!user && !isAuthPage && !isPublicRoute) {
       router.replace('/login');
