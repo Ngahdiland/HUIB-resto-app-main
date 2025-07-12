@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { FaSearch, FaFilter, FaEye, FaEdit, FaTrash, FaDownload, FaPrint, FaLock } from 'react-icons/fa';
+import { FaSearch, FaFilter, FaEye, FaEdit, FaTrash, FaDownload, FaPrint, FaLock, FaSort, FaSortUp, FaSortDown } from 'react-icons/fa';
 
 // Add Order type
 interface Order {
@@ -22,6 +22,7 @@ interface Order {
   deliveryDate?: string | null;
   deliveryAddress?: string;
   notes?: string;
+  date?: string; // Add this for the actual timestamp
 }
 
 // Sample orders data
@@ -111,6 +112,8 @@ const ManageOrders = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [dateFilter, setDateFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('date');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [selectedOrders, setSelectedOrders] = useState<string[]>([]);
   const [ordersState, setOrdersState] = useState<Order[]>([]);
   const [viewOrder, setViewOrder] = useState<Order | null>(null);
@@ -162,6 +165,20 @@ const ManageOrders = () => {
     }
   };
 
+  // Format timestamp to readable date and time
+  const formatTimestamp = (timestamp: string) => {
+    if (!timestamp) return 'N/A';
+    const date = new Date(timestamp);
+    return date.toLocaleString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    });
+  };
+
   // Add this function to update order status
   const handleStatusUpdate = async (orderId: string, newStatus: string) => {
     try {
@@ -185,14 +202,50 @@ const ManageOrders = () => {
     }
   };
 
-  const filteredOrders = ordersState.filter(order => {
+  // Sort orders based on selected criteria
+  const sortOrders = (orders: Order[]) => {
+    return [...orders].sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      switch (sortBy) {
+        case 'date':
+          aValue = new Date(a.date || a.orderDate || '');
+          bValue = new Date(b.date || b.orderDate || '');
+          break;
+        case 'total':
+          aValue = a.total || 0;
+          bValue = b.total || 0;
+          break;
+        case 'status':
+          aValue = a.status || '';
+          bValue = b.status || '';
+          break;
+        case 'id':
+          aValue = a.id || '';
+          bValue = b.id || '';
+          break;
+        default:
+          aValue = new Date(a.date || a.orderDate || '');
+          bValue = new Date(b.date || b.orderDate || '');
+      }
+
+      if (sortOrder === 'asc') {
+        return aValue > bValue ? 1 : -1;
+      } else {
+        return aValue < bValue ? 1 : -1;
+      }
+    });
+  };
+
+  const filteredOrders = sortOrders(ordersState.filter(order => {
     const matchesSearch = order.id?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (order.customer?.name?.toLowerCase().includes(searchTerm.toLowerCase()) || '') ||
       (order.customer?.email?.toLowerCase().includes(searchTerm.toLowerCase()) || '') ||
       (order.email?.toLowerCase().includes(searchTerm.toLowerCase()) || '');
     const matchesStatus = statusFilter === 'all' || order.status === statusFilter;
     return matchesSearch && matchesStatus;
-  });
+  }));
 
   // Pagination logic
   const totalPages = Math.ceil(filteredOrders.length / ordersPerPage);
@@ -224,8 +277,8 @@ const ManageOrders = () => {
   const handleExport = () => {
     let csv = 'id,customer_name,customer_email,customer_phone,items,total,status,paymentStatus,paymentMethod,orderDate,deliveryDate,deliveryAddress,notes\n';
     filteredOrders.forEach(order => {
-      const itemsStr = order.items.map(i => `${i.name} x${i.quantity} @${i.price}`).join('|');
-      csv += `${order.id},${order.customer.name},${order.customer.email},${order.customer.phone},${itemsStr},${order.total},${order.status},${order.paymentStatus},${order.paymentMethod},${order.orderDate},${order.deliveryDate || ''},${order.deliveryAddress},${order.notes.replace(/,/g, ' ')}\n`;
+      const itemsStr = order.items?.map(i => `${i.name} x${i.quantity} @${i.price}`).join('|') || '';
+      csv += `${order.id},${order.customer?.name || order.name},${order.customer?.email || order.email},${order.customer?.phone || order.phone},${itemsStr},${order.total},${order.status},${order.paymentStatus},${order.paymentMethod},${order.date || order.orderDate},${order.deliveryDate || ''},${order.deliveryAddress},${order.notes?.replace(/,/g, ' ') || ''}\n`;
     });
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -257,7 +310,7 @@ const ManageOrders = () => {
 
   const handleEditSave = async (updatedOrder: Order) => {
     try {
-      const res = await fetch('/api/orders/update', {
+      const res = await fetch(`/api/orders/${updatedOrder.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updatedOrder),
@@ -284,7 +337,18 @@ const ManageOrders = () => {
     setSearchTerm('');
     setStatusFilter('all');
     setDateFilter('all');
+    setSortBy('date');
+    setSortOrder('desc');
     setCurrentPage(1);
+  };
+
+  const handleSortChange = (newSortBy: string) => {
+    if (sortBy === newSortBy) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(newSortBy);
+      setSortOrder('desc');
+    }
   };
 
   if (loading) {
@@ -347,15 +411,22 @@ const ManageOrders = () => {
               <option value="cancelled">Cancelled</option>
             </select>
             <select
-              value={dateFilter}
-              onChange={(e) => setDateFilter(e.target.value)}
+              value={sortBy}
+              onChange={(e) => handleSortChange(e.target.value)}
               className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
             >
-              <option value="all">All Dates</option>
-              <option value="today">Today</option>
-              <option value="week">This Week</option>
-              <option value="month">This Month</option>
+              <option value="date">Sort by Date</option>
+              <option value="total">Sort by Total</option>
+              <option value="status">Sort by Status</option>
+              <option value="id">Sort by ID</option>
             </select>
+            <button
+              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+              className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent flex items-center gap-2"
+            >
+              {sortOrder === 'asc' ? <FaSortUp /> : <FaSortDown />}
+              {sortOrder === 'asc' ? 'Oldest First' : 'Newest First'}
+            </button>
             <button
               onClick={handleClearFilters}
               className="px-4 py-2 text-gray-600 hover:text-gray-800 transition-colors"
@@ -378,7 +449,7 @@ const ManageOrders = () => {
                 Update Status
               </button>
               <button className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700 transition-colors">
-                Cancel Orders
+                Delete Selected
               </button>
             </div>
           </div>
@@ -413,10 +484,10 @@ const ManageOrders = () => {
                 Status
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Payment
+                Payment Status
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Date
+                Date & Time
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                 Actions
@@ -478,18 +549,24 @@ const ManageOrders = () => {
                     ) : (
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(order.status)}`}>
                         {order.status}
-                        <FaLock className="ml-2 text-gray-400" title="Order cannot be edited" />
                       </span>
                     )}
                   </div>
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPaymentStatusColor(order.paymentStatus || '')}`}>
-                    {order.paymentStatus || ''}
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getPaymentStatusColor(order.paymentStatus || 'pending')}`}>
+                    {order.paymentStatus || 'pending'}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                  {order.orderDate ? new Date(order.orderDate).toLocaleDateString() : ''}
+                <td className="px-6 py-4 whitespace-nowrap">
+                  <div className="text-sm text-gray-900">
+                    {formatTimestamp(order.date || order.orderDate || '')}
+                  </div>
+                  {order.deliveryDate && (
+                    <div className="text-xs text-gray-500">
+                      Delivered: {formatTimestamp(order.deliveryDate)}
+                    </div>
+                  )}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                   <div className="flex space-x-2">
@@ -499,14 +576,12 @@ const ManageOrders = () => {
                     >
                       <FaEye />
                     </button>
-                    {order.status !== 'delivered' && order.status !== 'cancelled' && (
-                      <button
-                        onClick={() => setEditOrder(order)}
-                        className="text-green-600 hover:text-green-900"
-                      >
-                        <FaEdit />
-                      </button>
-                    )}
+                    <button
+                      onClick={() => setEditOrder(order)}
+                      className="text-green-600 hover:text-green-900"
+                    >
+                      <FaEdit />
+                    </button>
                     <button
                       onClick={() => setDeleteOrder(order)}
                       className="text-red-600 hover:text-red-900"
@@ -523,38 +598,61 @@ const ManageOrders = () => {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-gray-700">
-            Showing {startIdx} to {endIdx} of {filteredOrders.length} results
-          </div>
-          <div className="flex space-x-2">
+        <div className="flex items-center justify-between bg-white px-4 py-3 border-t border-gray-200 sm:px-6">
+          <div className="flex-1 flex justify-between sm:hidden">
             <button
               onClick={() => handlePageChange(currentPage - 1)}
               disabled={currentPage === 1}
-              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Previous
             </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => handlePageChange(page)}
-                className={`px-3 py-2 text-sm font-medium rounded-lg ${
-                  currentPage === page
-                    ? 'text-white bg-red-600'
-                    : 'text-gray-500 bg-white border border-gray-300 hover:bg-gray-50'
-                }`}
-              >
-                {page}
-              </button>
-            ))}
             <button
               onClick={() => handlePageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
-              className="px-3 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Next
             </button>
+          </div>
+          <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
+            <div>
+              <p className="text-sm text-gray-700">
+                Showing <span className="font-medium">{startIdx}</span> to <span className="font-medium">{endIdx}</span> of{' '}
+                <span className="font-medium">{filteredOrders.length}</span> results
+              </p>
+            </div>
+            <div>
+              <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                <button
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                  className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Previous
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
+                      page === currentPage
+                        ? 'z-10 bg-red-50 border-red-500 text-red-600'
+                        : 'bg-white border-gray-300 text-gray-500 hover:bg-gray-50'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+                <button
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                  className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Next
+                </button>
+              </nav>
+            </div>
           </div>
         </div>
       )}
