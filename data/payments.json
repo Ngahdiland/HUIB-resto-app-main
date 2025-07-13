@@ -185,5 +185,16 @@
     "date": "2025-07-12T13:24:27.746Z",
     "action": "order",
     "email": "fanka@gmail.com"
+  },
+  {
+    "amountPaid": 4212,
+    "paymentId": "PAY-1752411225286",
+    "userName": "Lois",
+    "paymentMethod": "mtn",
+    "phoneNumber": "+237691414115",
+    "status": "completed",
+    "date": "2025-07-13T12:53:45.286Z",
+    "action": "order",
+    "email": "lois@gmail.com"
   }
 ]

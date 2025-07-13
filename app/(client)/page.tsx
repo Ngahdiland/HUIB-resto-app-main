@@ -551,7 +551,7 @@ const Home = () => {
         </div>
       </section>
 
-      <ClientFooter />
+      {/* <ClientFooter /> */}
     </div>
   );
 };

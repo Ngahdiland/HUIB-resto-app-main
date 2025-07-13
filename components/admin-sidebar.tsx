@@ -6,10 +6,10 @@ const adminLinks = [
   { href: '/dashboard', label: 'Dashboard', icon: <FaTachometerAlt /> },
   { href: '/manage-products', label: 'Manage Products', icon: <FaBoxOpen /> },
   { href: '/manage-orders', label: 'Manage Orders', icon: <FaClipboardList /> },
+  { href: '/payments', label: 'Payments', icon: <FaMoneyCheckAlt /> },
   { href: '/manage-reviews', label: 'Manage Reviews', icon: <FaStar /> },
   { href: '/feedbacks', label: 'Feedbacks', icon: <FaCommentDots /> },
   { href: '/general-analysys', label: 'General Analysis', icon: <FaChartBar /> },
-  { href: '/payments', label: 'Payments', icon: <FaMoneyCheckAlt /> },
   { href: '/settings', label: 'Settings', icon: <FaCog /> },
 ];
 
