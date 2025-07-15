@@ -389,8 +389,8 @@ const Dashboard = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {stats.map((stat, index) => (
-          <div key={index} className="bg-white rounded-lg shadow-md p-6">
+        {stats.map((stat) => (
+          <div key={stat.title} className="bg-white rounded-lg shadow-md p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">{stat.title}</p>
@@ -401,15 +401,11 @@ const Dashboard = () => {
                   ) : (
                     <FaArrowDown className="text-red-500 text-sm mr-1" />
                   )}
-                  <span className={`text-sm ${stat.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>
-                    {stat.change}
-                  </span>
+                  <span className={`text-sm ${stat.trend === 'up' ? 'text-green-600' : 'text-red-600'}`}>{stat.change}</span>
                   <span className="text-sm text-gray-500 ml-1">from last month</span>
                 </div>
               </div>
-              <div className={`${stat.color} text-white p-3 rounded-lg`}>
-                {stat.icon}
-              </div>
+              <div className={`${stat.color} text-white p-3 rounded-lg`}>{stat.icon}</div>
             </div>
           </div>
         ))}
@@ -479,11 +475,12 @@ const Dashboard = () => {
         <div className="bg-white rounded-lg shadow-md p-6">
           <h3 className="text-lg font-semibold text-gray-800 mb-4">Top Selling Products</h3>
           <div className="space-y-4">
-                            {topProducts.map((product: any, index: number) => (
-              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+            {topProducts.map((product: any) => (
+              <div key={product.name} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
                 <div className="flex items-center">
                   <div className="w-8 h-8 bg-red-100 text-red-600 rounded-full flex items-center justify-center text-sm font-semibold mr-3">
-                    {index + 1}
+                    {/* Use index if needed for display, but not as key */}
+                    {topProducts.findIndex((p: any) => p.name === product.name) + 1}
                   </div>
                   <div>
                     <p className="font-medium text-gray-800">{product.name}</p>
