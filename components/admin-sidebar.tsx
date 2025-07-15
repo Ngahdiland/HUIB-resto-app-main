@@ -1,10 +1,11 @@
 import React from 'react';
 import Link from 'next/link';
-import { FaTachometerAlt, FaBoxOpen, FaClipboardList, FaCommentDots, FaChartBar, FaMoneyCheckAlt, FaCog, FaStar } from 'react-icons/fa';
+import { FaTachometerAlt, FaBoxOpen, FaClipboardList, FaCommentDots, FaChartBar, FaMoneyCheckAlt, FaCog, FaStar, FaRecordVinyl } from 'react-icons/fa';
 
 const adminLinks = [
   { href: '/dashboard', label: 'Dashboard', icon: <FaTachometerAlt /> },
   { href: '/manage-products', label: 'Manage Products', icon: <FaBoxOpen /> },
+  { href: '/record-data', label: 'Record Data', icon: <FaRecordVinyl /> },
   { href: '/manage-orders', label: 'Manage Orders', icon: <FaClipboardList /> },
   { href: '/payments', label: 'Payments', icon: <FaMoneyCheckAlt /> },
   { href: '/manage-reviews', label: 'Manage Reviews', icon: <FaStar /> },

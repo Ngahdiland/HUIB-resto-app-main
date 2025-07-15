@@ -1,25 +1,15 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
 
 export async function GET() {
+  const filePath = path.join(process.cwd(), 'data', 'products.json');
   try {
-    const filePath = path.join(process.cwd(), 'data', 'products.json');
-    
-    if (!fs.existsSync(filePath)) {
-      return NextResponse.json({ products: [] }, { status: 200 });
-    }
-
-    const fileContent = fs.readFileSync(filePath, 'utf-8');
-    const products = JSON.parse(fileContent);
-
-    return NextResponse.json({ products }, { status: 200 });
+    const data = fs.readFileSync(filePath, 'utf-8');
+    const products = JSON.parse(data);
+    return NextResponse.json({ products });
   } catch (error) {
-    console.error('Error reading products:', error);
-    return NextResponse.json(
-      { error: 'Failed to fetch products' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to read products.' }, { status: 500 });
   }
 }
 

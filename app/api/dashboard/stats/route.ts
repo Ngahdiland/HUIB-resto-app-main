@@ -5,6 +5,7 @@ import path from 'path';
 const ordersFile = path.join(process.cwd(), 'data', 'orders.json');
 const paymentsFile = path.join(process.cwd(), 'data', 'payments.json');
 const usersFile = path.join(process.cwd(), 'data', 'users.json');
+const recordedOrdersFile = path.join(process.cwd(), 'data', 'recorded-data.json');
 
 export async function GET(req: NextRequest) {
   try {
@@ -12,6 +13,7 @@ export async function GET(req: NextRequest) {
     let orders = [];
     let payments = [];
     let users = [];
+    let recordedOrders = [];
 
     if (fs.existsSync(ordersFile)) {
       const ordersData = fs.readFileSync(ordersFile, 'utf-8');
@@ -28,15 +30,26 @@ export async function GET(req: NextRequest) {
       users = usersData ? JSON.parse(usersData) : [];
     }
 
+    if (fs.existsSync(recordedOrdersFile)) {
+      const recordedOrdersData = fs.readFileSync(recordedOrdersFile, 'utf-8');
+      recordedOrders = recordedOrdersData ? JSON.parse(recordedOrdersData) : [];
+    }
+
+    // Only include paid recorded orders
+    const paidRecordedOrders = recordedOrders.filter((order: any) => order.status === 'paid');
+
+    // Merge orders and paid recorded orders for stats
+    const allOrders = [...orders, ...paidRecordedOrders];
+
     // Calculate statistics
-    const totalOrders = orders.length;
-    const totalRevenue = orders.reduce((sum, order) => sum + (order.total || 0), 0);
+    const totalOrders = allOrders.length;
+    const totalRevenue = allOrders.reduce((sum, order) => sum + (order.total || 0), 0);
     const completedPayments = payments.filter(p => p.status === 'completed');
     const totalRevenueFromPayments = completedPayments.reduce((sum, p) => sum + (p.amountPaid || 0), 0);
     const totalUsers = users.length;
 
     // Calculate order status breakdown
-    const orderStatusCounts = orders.reduce((acc, order) => {
+    const orderStatusCounts = allOrders.reduce((acc, order) => {
       const status = order.status || 'pending';
       acc[status] = (acc[status] || 0) + 1;
       return acc;
@@ -44,7 +57,7 @@ export async function GET(req: NextRequest) {
 
     // Calculate top selling products
     const productSales: Record<string, { sales: number; revenue: number }> = {};
-    orders.forEach(order => {
+    allOrders.forEach(order => {
       order.items?.forEach((item: any) => {
         if (!productSales[item.name]) {
           productSales[item.name] = { sales: 0, revenue: 0 };
@@ -65,7 +78,7 @@ export async function GET(req: NextRequest) {
 
     // Calculate top customers by order count and revenue
     const customerStats: Record<string, { orders: number; revenue: number; avgOrderValue: number }> = {};
-    orders.forEach(order => {
+    allOrders.forEach(order => {
       const email = order.email;
       if (!customerStats[email]) {
         customerStats[email] = { orders: 0, revenue: 0, avgOrderValue: 0 };
@@ -100,7 +113,7 @@ export async function GET(req: NextRequest) {
     });
 
     // Add order data to regions
-    orders.forEach(order => {
+    allOrders.forEach(order => {
       const user = users.find(u => u.email === order.email);
       const region = user?.region || 'Unknown';
       if (userRegions[region]) {
@@ -120,7 +133,7 @@ export async function GET(req: NextRequest) {
       .slice(0, 5);
 
     // Get recent orders (last 5)
-    const recentOrders = orders
+    const recentOrders = allOrders
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
       .slice(0, 5)
       .map(order => ({
@@ -140,7 +153,7 @@ export async function GET(req: NextRequest) {
     }).reverse();
 
     const revenueTrend = last7Days.map(date => {
-      const dayOrders = orders.filter(order => {
+      const dayOrders = allOrders.filter(order => {
         const orderDate = new Date(order.date).toISOString().split('T')[0];
         return orderDate === date;
       });
@@ -152,7 +165,7 @@ export async function GET(req: NextRequest) {
     });
 
     // Calculate peak hours (simplified - just count orders by hour)
-    const peakHours = orders.reduce((acc, order) => {
+    const peakHours = allOrders.reduce((acc, order) => {
       const hour = new Date(order.date).getHours();
       const hourStr = `${hour}:00 ${hour < 12 ? 'AM' : 'PM'}`;
       acc[hourStr] = (acc[hourStr] || 0) + 1;
