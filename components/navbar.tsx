@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { FaShoppingCart, FaBars, FaTimes, FaUserCircle } from 'react-icons/fa';
 import SessionManager from '@/utils/sessionManager';
 
@@ -19,6 +19,7 @@ const rightLinks = [
 
 const Navbar = () => {
   const pathname = usePathname();
+  const router = useRouter();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [activeSection, setActiveSection] = useState<string>('');
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -63,11 +64,14 @@ const Navbar = () => {
   };
 
   const handleLogout = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.clear();
+    }
     const sessionManager = SessionManager.getInstance();
     sessionManager.logout();
     setCurrentUser(null);
     setIsLoggedIn(false);
-    window.location.href = '/login';
+    router.push('/login');
   };
 
   const linkClass = (href: string, section?: string) => {
@@ -153,10 +157,24 @@ const Navbar = () => {
         
         {showProfileMenu && isLoggedIn && (
           <div className="absolute right-0 mt-2 w-40 bg-white border border-gray-200 rounded shadow-lg z-50">
-            <Link href="/profile" className="block px-4 py-2 hover:bg-red-50 text-gray-700" onClick={() => setShowProfileMenu(false)}>
+            <button
+              className="block w-full text-left px-4 py-2 hover:bg-red-50 text-gray-700"
+              onMouseDown={e => {
+                e.preventDefault();
+                setShowProfileMenu(false);
+                router.push('/profile');
+              }}
+            >
               View Profile
-            </Link>
-            <button className="block w-full text-left px-4 py-2 hover:bg-red-50 text-gray-700" onClick={handleLogout}>
+            </button>
+            <button
+              className="block w-full text-left px-4 py-2 hover:bg-red-50 text-gray-700"
+              onMouseDown={e => {
+                e.preventDefault();
+                setShowProfileMenu(false);
+                handleLogout();
+              }}
+            >
               Logout
             </button>
           </div>
@@ -202,9 +220,10 @@ const Navbar = () => {
                   <>
                     <button
                       className="flex items-center gap-2 text-red-600 hover:text-red-700 w-full px-4 py-2"
-                      onClick={() => {
+                      onMouseDown={e => {
+                        e.preventDefault();
                         setIsMobileMenuOpen(false);
-                        window.location.href = '/profile';
+                        router.push('/profile');
                       }}
                     >
                       <FaUserCircle size={20} />
@@ -212,7 +231,8 @@ const Navbar = () => {
                     </button>
                     <button
                       className="flex items-center gap-2 text-red-600 hover:text-red-700 w-full px-4 py-2"
-                      onClick={() => {
+                      onMouseDown={e => {
+                        e.preventDefault();
                         setIsMobileMenuOpen(false);
                         handleLogout();
                       }}
