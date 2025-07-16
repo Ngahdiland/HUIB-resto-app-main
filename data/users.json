@@ -46,5 +46,13 @@
     "password": "Lois@50",
     "address": "Buea",
     "region": "South-West"
+  },
+  {
+    "name": "Akem",
+    "email": "Lekeakaakematu@gmail.com",
+    "phone": "678763463",
+    "password": "Akem@50",
+    "address": "molyko",
+    "region": "South-West"
   }
 ]

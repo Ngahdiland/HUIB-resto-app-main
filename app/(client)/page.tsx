@@ -489,7 +489,7 @@ const Home = () => {
             </div>
             <div className="text-center">
               <img 
-                src="/assets/about_img.jpg" 
+                src="/assets/about_img.png" 
                 alt="About CCF Resto" 
                 className="w-full max-w-md mx-auto rounded-lg shadow-lg"
               />

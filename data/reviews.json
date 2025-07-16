@@ -8,5 +8,15 @@
     "date": "2025-07-09T22:18:48.724Z",
     "approved": true,
     "rejected": false
+  },
+  {
+    "id": "REV-1752671932648",
+    "name": "Akem",
+    "email": "lekeakaakematu@gmail.com",
+    "rating": 5,
+    "comment": "i love the food",
+    "date": "2025-07-16T13:18:52.648Z",
+    "approved": true,
+    "rejected": false
   }
 ]

@@ -50,7 +50,17 @@ const RecordDataPage = () => {
 
   // Fetch products
   useEffect(() => {
-    fetcher(PRODUCTS_URL).then(setProducts);
+    fetcher(PRODUCTS_URL)
+      .then(data => {
+        if (data && Array.isArray(data.products)) {
+          setProducts(data.products);
+        } else if (Array.isArray(data)) {
+          setProducts(data);
+        } else {
+          setProducts([]);
+        }
+      })
+      .catch(() => setProducts([]));
   }, []);
 
   // Fetch orders
@@ -261,7 +271,7 @@ const RecordDataPage = () => {
                 </tr>
               ) : (
                 filteredOrders.map((order, idx) => (
-                  <tr key={idx} className={getRowClass(idx)}>
+                  <tr key={order.date + '-' + order.buyer + '-' + idx} className={getRowClass(idx)}>
                     <td className="p-2 border">{new Date(order.date).toLocaleString()}</td>
                     <td className="p-2 border">{order.buyer}</td>
                     <td className="p-2 border">
@@ -270,7 +280,7 @@ const RecordDataPage = () => {
                     <td className="p-2 border">
                       <ul>
                         {order.items.map((i, j) => (
-                          <li key={j}>{i.name} x{i.quantity} (FCFA {i.price})</li>
+                          <li key={i.id || i.name + '-' + j}>{i.name} x{i.quantity} (FCFA {i.price})</li>
                         ))}
                       </ul>
                     </td>
@@ -353,7 +363,7 @@ const RecordDataPage = () => {
               </thead>
               <tbody>
                 {filteredOrders.map((order, idx) => (
-                  <tr key={idx}>
+                  <tr key={order.date + '-' + order.buyer + '-' + idx}>
                     <td className="p-2">{new Date(order.date).toLocaleString()}</td>
                     <td className="p-2">{order.buyer}</td>
                     <td className="p-2">
@@ -362,7 +372,7 @@ const RecordDataPage = () => {
                     <td className="p-2">
                       <ul>
                         {order.items.map((i, j) => (
-                          <li key={j}>{i.name} x{i.quantity} (FCFA {i.price})</li>
+                          <li key={i.id || i.name + '-' + j}>{i.name} x{i.quantity} (FCFA {i.price})</li>
                         ))}
                       </ul>
                     </td>
@@ -406,7 +416,7 @@ const RecordDataPage = () => {
                       onChange={e => setSelectedProduct(e.target.value)}
                     >
                       <option value="">Select product</option>
-                      {products.map(prod => (
+                      {Array.isArray(products) && products.map(prod => (
                         <option key={prod.id} value={prod.id}>
                           {prod.name} (FCFA {prod.price})
                         </option>
