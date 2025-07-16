@@ -18,5 +18,14 @@
     "date": "2025-07-16T13:18:52.648Z",
     "approved": true,
     "rejected": false
+  },
+  {
+    "id": "REV-1752672568486",
+    "name": "Ruth",
+    "email": "Ruth@email.com",
+    "rating": 5,
+    "comment": "i really love the new system and food taste",
+    "date": "2025-07-16T13:29:28.486Z",
+    "approved": false
   }
 ]
