@@ -58,12 +58,6 @@ A modern food delivery and restaurant management platform for Cameroonian cuisin
 Before running the application, set up environment variables. Create a `.env` file in the root directory with the following:
 
 ```bash
-# Database
-DATABASE_URL="postgresql://username:password@localhost:5432/huib_app"
-
-# JWT Secret (generate a secure secret in production)
-JWT_SECRET="your-super-secret-jwt-key-change-this-in-production"
-
 # Next.js
 NEXTAUTH_URL="http://localhost:3000"
 NEXTAUTH_SECRET="your-nextauth-secret-key"
@@ -91,7 +85,6 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 ## 📚 Learn More
 - [Next.js Documentation](https://nextjs.org/docs)
 - [Tailwind CSS Docs](https://tailwindcss.com/docs)
-- [PostgreSQL Docs](https://www.postgresql.org/docs/)
 
 ---
 
